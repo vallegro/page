@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Facebook Page</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="http://w2ui.com/src/w2ui-1.5.rc1.min.css"/>
+    <script src="http://w2ui.com/src/w2ui-1.5.rc1.min.js"></script>
+    <script defer src="https://use.fontawesome.com/releases/v5.0.4/js/all.js"></script>
+    <script src="https://connect.facebook.net/ja_JP/sdk.js#xfbml=1&version=v2.11"></script>
+    <style>
+        .overlay {
+            width: 100%;
+            height: 100%;
+            z-index: 100;
+            background: white;
+            position: fixed;
+            left: 0;
+            top: 0;
+            display: flex;
+            justify-content: center;
+        }
+
+        html, body, #container {
+            height: 100%;
+        }
+
+        #timeline {
+            width: 100%;
+        }
+
+        .post {
+            width: 600px;
+            margin: 30px auto;
+            background: #EEEEEE;
+        }
+
+        .scheduled_post {
+            width: 600px;
+            margin: 30px auto;
+            background: #EEEEEE;
+            color: grey
+        }
+
+        .title {
+            background: #CCCCCC;
+        }
+
+        .insight {
+            background: #EEEEEE;
+        }
+
+        .pic {
+            background: #EEEEEE;
+        }
+
+
+    </style>
+    <script>
+        var accessTokenCache = '';
+
+        function statusChangeCallback(response) {
+            console.log('statusChangeCallback');
+            console.log(response);
+            if (response.status === 'connected') {
+                accessTokenCache = response.authResponse.accessToken;
+                after_login();
+            } else {
+                document.getElementById('status').innerHTML = 'Please log ' +
+                    'into this app.';
+            }
+        }
+
+        function login() {
+            FB.getLoginStatus(function (response) {
+                statusChangeCallback(response);
+            });
+        }
+
+
+        function checkLogin() {
+            console.log("checking")
+            if (localStorage.getItem("ME_REP") != null && localStorage.getItem("ACCOUNTS_REP") != null) {
+                $('.overlay').hide();
+                init_op_ui();
+                $('#container').show();
+                FB.api('/me', response => {console.log(response);});
+                update_top(JSON.parse(localStorage.getItem("ME_REP")));
+                add_pagebar(JSON.parse(localStorage.getItem("ACCOUNTS_REP")));
+                show_pages(localStorage.getItem("PAGE_ID"));
+            }
+            else{
+
+
+                $('#container').hide();
+                $('.overlay').show();
+            }
+
+        }
+
+        function after_login() {
+            $('.overlay').hide();
+            init_op_ui();
+            $('#container').show()
+            console.log('Welcome!  Fetching your information.... ');
+            FB.api('/me', function (response) {
+                console.log('Successful login for: ' + response.name);
+                console.log(response);
+                localStorage.setItem("ME_REP", JSON.stringify(response));
+                update_top(response);
+            });
+            FB.api('/me/accounts', function (response) {
+                localStorage.setItem("ACCOUNTS_REP", JSON.stringify(response));
+                add_pagebar(response);
+            })
+        }
+
+        function update_top(response) {
+            $(w2ui['layout'].el('top')).html('');
+            w2ui['layout'].el('top').append('Thanks for logging in, ' + response.name + '!');
+            var revoke_button = $('<div><button onclick="revoke()">LOGOUT</button></div>');
+            $(w2ui['layout'].el('top')).append(revoke_button);
+        }
+
+        function add_pagebar(response) {
+            // w2ui['layout'].el('').append("you are managing following pages:" + response.data.map(d => d.name).join(" ,"));]
+            PAGE_TOKENS = {};
+            response.data.map(d => (
+                PAGE_TOKENS[d.id] = d.access_token
+                )
+            )
+            ;
+
+            w2ui.sidebar.add(
+                response.data.map(d => ({
+                    id: "page_" + d.id,
+                    text: d.name,
+                    icon: 'w2ui-icon-check',
+                    onClick: function () {
+                        show_pages(d.id)
+                    }
+                }))
+        )
+        }
+
+        function show_pages(page_id) {
+            PAGE_ID = page_id
+            //console.log('/' + page_id + '/posts')
+            //FB.api('/'+page_id+'/posts', response=>console.log(response));
+            localStorage.setItem("PAGE_ID", PAGE_ID);
+
+            $('#scheduled_timeline').html("")
+            var request = '/' + page_id + '/promotable_posts?fields=story, message, name,full_picture&is_published=false'
+            FB.api(request, {access_token: PAGE_TOKENS[PAGE_ID]}, function (response) {
+                add_posts(response, '#scheduled_timeline')
+            })
+
+            $('#timeline').html("")
+            var request = '/' + page_id + '/posts?fields=story, message, name,full_picture'
+            FB.api(request, {access_token: PAGE_TOKENS[PAGE_ID]}, function (response) {
+                add_posts(response, '#timeline')
+            })
+
+            $('#postbox').html('<div id="new post"><input id="post" type="text"><button onclick="publish();">publish</button>')
+            $(w2ui.layout.el('right')).html("")
+            create_upload_button($(w2ui.layout.el('right')));
+        }
+
+        function add_posts(response, timeline) {
+            console.log(response);
+            for (var post of response.data) {
+                //console.log(post.id);
+                //console.log(post);
+                var x = $($('#post_template').html());
+                var title = ""
+                if (post.story & post.name) {
+                    title = post.story + ":" + post.name
+                }
+                else if (post.name) {
+                    title = post.name
+                }
+                else if (post.story) {
+                    title = post.story
+                }
+                if (title == "") {
+                    title = "Post";
+                }
+                x.find('.title').text(title);
+                if (post.message) {
+                    x.find('.msg').text(post.message);
+                } else {
+                    x.find('.msg').hide
+                }
+                if (post.full_picture) {
+                    x.find('.pic').html("<img src = '" + post.full_picture + "' width=560 align=\"middle\" style=\"margin:20px 20px\">");
+                } else
+                    x.find('.pic').hide;
+                //FB.api('/'+post.id+'/insights/post_impressions', {access_token:PAGE_TOKENS[PAGE_ID]}, function (response) {x.find('.insight').html("Total impressions: "+response.data[0].values[0].value)});
+                //console.log(x);
+                get_insights(x, post);
+                console.log(timeline)
+                if (timeline == '#scheduled_timeline') {
+                    x.attr('class', 'scheduled_post');
+                }
+                $(timeline).append(x);
+
+            }
+        }
+
+        function get_insights(x, post) {
+            FB.api('/' + post.id + '/insights?metric=post_impressions,post_impressions_unique', {access_token: PAGE_TOKENS[PAGE_ID]}, function (response) {
+                x.find('.insight').text("Total impressions: " + response.data[0].values[0].value + "\t\tTotal unique impressions: " + response.data[1].values[0].value)
+            });
+
+        }
+
+        function publish() {
+            console.log(PAGE_ID)
+            console.log($("#post").val())
+            FB.api(
+                "/" + PAGE_ID + "/feed",
+                "POST",
+                {
+                    "message": $("#post").val(),
+                    "access_token": PAGE_TOKENS[PAGE_ID]
+                },
+                function (response) {
+                    if (response && !response.error) {
+                        /* handle the result */
+                        alert("Great Post!");
+                        show_pages(PAGE_ID);
+                    }
+                    else {
+                        alert(response.error.error_user_msg)
+                        console.log(response.error);
+                    }
+                }
+            );
+        }
+
+        /*function create_upload_button(holder_elem) {
+            var input_elem = $('<div id="example-file-input"><input type="file"><button>Upload</button></div>');
+            var input_elem2 = $('<div id="example-file-input2" style="background: #1e83c9; border: dashed 2px; border-radius: 5px; height: 100px; width:100px"> Or drag file here </div>')
+            input_elem.find('button').click(function (event) {
+                var input_file = $(event.target).parent().find('input')[0].files[0]; // input[0] change jQ obj to DOM obj, .files return a file list, we need only 1
+                split_and_upload_file(input_file);
+            });
+
+            input_elem2.on('drop', function (event) {
+                event.stopPropagation(); // don't trigger parent listener
+                event.preventDefault(); // don't trigger browser default
+                var input_file = event.originalEvent.dataTransfer.files[0]; // we need "original event" instead of jquery event to visit this protected member
+                split_and_upload_file(input_file);
+            });
+            input_elem2.on('dragover', function (event) {
+                event.stopPropagation();
+                event.preventDefault();
+                event.originalEvent.dataTransfer.dropEffect = 'copy';
+            });
+
+            holder_elem.append(input_elem);
+            holder_elem.append(input_elem2);
+        }
+
+        function split_and_upload_file(file) {
+            // check https://developers.facebook.com/docs/graph-api/video-uploads
+            // start transfer handshake
+            var page_id = PAGE_ID;
+
+            var upload_log = {};
+
+            function post_with_blob(url, obj, callback) {
+                var data = new FormData();
+                for (var k in obj) {
+                    if (obj.hasOwnProperty(k)) {
+                        data.append(k, obj[k]);
+                    }
+                }
+
+                $.ajax({
+                    type: 'POST',
+                    url: url,
+                    data: data,
+                    processData: false,
+                    contentType: false,
+                    success: callback
+                });
+            }
+
+            function do_send() {
+                console.log('Sending ' + upload_log.end + '/' + file.size);
+                post_with_blob(
+                    'https://graph-video.facebook.com/v2.11/' + page_id + '/videos',
+                    {
+                        access_token: PAGE_TOKENS[PAGE_ID], // todo not good , change it to acquire accestoken in runtime
+                        upload_phase: 'transfer',
+                        start_offset: upload_log.start,
+                        upload_session_id: upload_log.sess,
+                        video_file_chunk: file.slice(upload_log.start, upload_log.end + 1)  // a Blob object, end is exlusive so +1
+                    },
+                    function (resp) {
+                        upload_log.start = resp.start_offset;
+                        upload_log.end = resp.end_offset;
+
+                        if (upload_log.start !== upload_log.end) {
+                            do_send();
+                        } else {
+                            // start == end, so send finish. finalize
+                            console.log('Finishing transmission');
+                            post_with_blob(
+                                'https://graph-video.facebook.com/v2.11/' + page_id + '/videos',
+                                {
+                                    access_token: PAGE_TOKENS[PAGE_ID], // todo not good , change it to acquire accestoken in runtime
+                                    upload_phase: 'finish',
+                                    upload_session_id: upload_log.sess,
+                                    title: 'test video', // and anything on https://developers.facebook.com/docs/graph-api/reference/page/videos
+                                    description: 'just test',
+                                },
+                                function (resp) {
+                                    if (!resp.success) {
+                                        console.error('Error, check video status ' + upload_log.sess, resp);
+                                    } else {
+                                        console.log('Success, check video status ' + upload_log.sess);
+                                    }
+                                });
+                        }
+                    }
+                )
+            }
+
+            post_with_blob(
+                'https://graph-video.facebook.com/v2.11/' + page_id + '/videos',
+                {
+                    access_token: PAGE_TOKENS[PAGE_ID], // todo not good , change it to acquire accestoken in runtime
+                    upload_phase: 'start',
+                    file_size: file.size
+                },
+                function (resp) {
+                    upload_log.sess = resp.upload_session_id;
+                    upload_log.vid = resp.video_id;
+                    upload_log.start = resp.start_offset;
+                    upload_log.end = resp.end_offset;
+
+                    do_send();
+                }
+            )
+        }
+        */
+
+
+        function create_upload_button(holder_elem) {
+            var input_elem = $('<div id="example-file-input"><input type="file"><button>Upload</button></div>');
+            var input_elem2 = $('<div id="example-file-input2" style="background: #1e83c9; border: dashed 2px; border-radius: 5px; height: 100px; width:100px"> Or drag file here </div>')
+            input_elem.find('button').click(function (event) {
+                var input_file = $(event.target).parent().find('input')[0].files[0]; // input[0] change jQ obj to DOM obj, .files return a file list, we need only 1
+                split_and_upload_file(input_file);
+            });
+
+            input_elem2.on('drop', function (event) {
+                event.stopPropagation(); // don't trigger parent listener
+                event.preventDefault(); // don't trigger browser default
+                var input_file = event.originalEvent.dataTransfer.files[0]; // we need "original event" instead of jquery event to visit this protected member
+                split_and_upload_file(input_file);
+            });
+            input_elem2.on('dragover', function (event) {
+                event.stopPropagation();
+                event.preventDefault();
+                event.originalEvent.dataTransfer.dropEffect = 'copy';
+            });
+
+            holder_elem.append(input_elem);
+            holder_elem.append(input_elem2);
+        }
+
+        function split_and_upload_file(file) {
+            // check https://developers.facebook.com/docs/graph-api/video-uploads
+            // start transfer handshake
+            var page_id = PAGE_ID;
+
+            var upload_log = {};
+
+            function post_with_blob(url, obj, callback) {
+                var data = new FormData();
+                for (var k in obj) {
+                    if (obj.hasOwnProperty(k)) {
+                        data.append(k, obj[k]);
+                    }
+                }
+
+                $.ajax({
+                    type: 'POST',
+                    url: url,
+                    data: data,
+                    processData: false,
+                    contentType: false,
+                    success: callback
+                });
+            }
+
+            function do_send() {
+                console.log('Sending ' + upload_log.end + '/' + file.size);
+                post_with_blob(
+                    'https://graph.facebook.com/v2.11/' + page_id + '/photos',
+                    {
+                        access_token: PAGE_TOKENS[PAGE_ID], // todo not good , change it to acquire accestoken in runtime
+                        upload_phase: 'transfer',
+                        start_offset: upload_log.start,
+                        upload_session_id: upload_log.sess,
+                        video_file_chunk: file.slice(upload_log.start, upload_log.end + 1)  // a Blob object, end is exlusive so +1
+                    },
+                    function (resp) {
+                        upload_log.start = resp.start_offset;
+                        upload_log.end = resp.end_offset;
+
+                        if (upload_log.start !== upload_log.end) {
+                            do_send();
+                        } else {
+                            // start == end, so send finish. finalize
+                            console.log('Finishing transmission');
+                            post_with_blob(
+                                'https://graph-video.facebook.com/v2.11/' + page_id + '/videos',
+                                {
+                                    access_token: PAGE_TOKENS[PAGE_ID], // todo not good , change it to acquire accestoken in runtime
+                                    upload_phase: 'finish',
+                                    upload_session_id: upload_log.sess,
+                                    title: 'test video', // and anything on https://developers.facebook.com/docs/graph-api/reference/page/videos
+                                    description: 'just test',
+                                },
+                                function (resp) {
+                                    if (!resp.success) {
+                                        console.error('Error, check video status ' + upload_log.sess, resp);
+                                    } else {
+                                        console.log('Success, check video status ' + upload_log.sess);
+                                    }
+                                });
+                        }
+                    }
+                )
+            }
+
+            post_with_blob(
+                'https://graph-video.facebook.com/v2.11/' + page_id + '/videos',
+                {
+                    access_token: PAGE_TOKENS[PAGE_ID], // todo not good , change it to acquire accestoken in runtime
+                    upload_phase: 'start',
+                    file_size: file.size
+                },
+                function (resp) {
+                    upload_log.sess = resp.upload_session_id;
+                    upload_log.vid = resp.video_id;
+                    upload_log.start = resp.start_offset;
+                    upload_log.end = resp.end_offset;
+
+                    do_send();
+                }
+            )
+        }
+
+        function init_op_ui() {
+            var pstyle = 'background-color: #F5F6F7; border: 1px solid #dfdfdf; padding: 5px;';
+            $('#container').w2layout({
+                name: 'layout',
+                panels: [
+                    {type: 'top', size: 50, resizable: true, style: pstyle, content: '<div name="top bar">'},
+                    {
+                        type: 'left', size: 200, resizable: true, style: pstyle, content: $().w2sidebar({
+                            name: 'sidebar',
+                            nodes: [],
+                        })
+                    },
+                    {type: 'main', style: pstyle, content: '<div id= "postbox"></div>'},
+                    {
+                        type: 'preview',
+                        size: '80%',
+                        resizable: false,
+                        style: pstyle,
+                        content: '<div id="scheduled_timeline"> </div> <div id="timeline"> </div>'
+                    },
+                    {type: 'right', size: 200, resizable: true, style: pstyle},
+                    // {type: 'bottom', size: 50, resizable: true, style: pstyle, content: 'bottom'}
+                ]
+            });
+
+
+        }
+
+        function revoke() {
+            localStorage.clear("ACCOUNT_REP")
+            localStorage.clear("ME_REP")
+            localStorage.clear("PAGE_ID")
+            $('#container').hide()
+            $('.overlay').show()
+        }
+
+        $(function (){
+
+            FB.init({
+                appId: '135046373960941',
+                xfbml: true,
+                version: 'v2.11'
+            });
+            FB.AppEvents.logPageView();
+
+            console.log("initiated");
+            init_op_ui();
+            checkLogin();
+        });
+
+    </script>
+</head>
+<body>
+<div class="overlay">
+    <fb:login-button
+            scope="email, publish_actions, manage_pages,pages_manage_cta,publish_pages,pages_show_list,read_insights, user_video, user_photo"
+            onlogin="login">
+    </fb:login-button>
+</div>
+<div id="container"></div>
+<template id="post_template">
+    <div class="post">
+        <div class="title"></div>
+        <div class="insight"></div>
+        <div class="msg"></div>
+        <div class="text"></div>
+        <div class="pic"></div>
+    </div>
+</template>
+</body>
+</html>

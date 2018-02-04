@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<body>
+<script>
+ window.fbAsyncInit = function() {
+   FB.init({
+     appId      : '135046373960941',
+     xfbml      : true,
+     version    : 'v2.11'
+   });
+   FB.AppEvents.logPageView();
+ };
+ (function(d, s, id){
+    var js, fjs = d.getElementsByTagName(s)[0];
+    if (d.getElementById(id)) {return;}
+    js = d.createElement(s); js.id = id;
+    js.src = "https://connect.facebook.net/en_US/sdk.js";
+    fjs.parentNode.insertBefore(js, fjs);
+  }(document, 'script', 'facebook-jssdk'));
+  function statusChangeCallback(response) {
+   console.log('statusChangeCallback');
+   console.log(response);
+   if (response.status === 'connected') {
+     testAPI();
+   } else {
+     document.getElementById('status').innerHTML = 'Please log ' +
+       'into this app.';
+   }
+ }
+ function checkLoginState() {
+   FB.getLoginStatus(function(response) {
+     statusChangeCallback(response);
+   });
+ }
+ function testAPI() {
+   console.log('Welcome!  Fetching your information.... ');
+   FB.api('/me', function(response) {
+     console.log('Successful login for: ' + response.name);
+     console.log(response);
+     document.getElementById('status').innerHTML =
+       'Thanks for logging in, ' + response.name + '!';
+   });
+   FB.api('/me/accounts', function(response) {
+     document.getElementById('pages').innerHTML =
+       "you are managing following pages:"+ response.data.map(d=>d.name).join(" ,")
+   });
+ }
+</script>
+<fb:login-button scope="public_profile,email,pages_manage_cta,publish_pages,pages_show_list" onlogin="checkLoginState();">
+</fb:login-button>
+<div id="status">
+</div>
+<div id="pages">
+</div>
+</body>
+</html>
