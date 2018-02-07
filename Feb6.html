@@ -1,0 +1,673 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+   <meta charset="UTF-8">
+   <title>Facebook Page</title>
+   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+   <link rel="stylesheet" type="text/css" href="http://w2ui.com/src/w2ui-1.5.rc1.min.css"/>
+   <script src="http://w2ui.com/src/w2ui-1.5.rc1.min.js"></script>
+   <script defer src="https://use.fontawesome.com/releases/v5.0.4/js/all.js"></script>
+   <script src="https://connect.facebook.net/ja_JP/sdk.js#xfbml=1&version=v2.11"></script>
+   <link rel="stylesheet" href="./style.css">
+   <link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/themes/base/jquery-ui.css">
+   <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
+   <link rel="stylesheet" href="http://rawgit.com/vitmalina/w2ui/master/dist/w2ui.min.css">
+   <script src="http://rawgit.com/vitmalina/w2ui/master/dist/w2ui.min.js"></script>
+   <style>
+       .overlay {
+           width: 100%;
+           height: 100%;
+           z-index: 99999;
+           background: white;
+           position: fixed;
+           left: 0;
+           top: 0;
+           display: flex;
+           justify-content: center;
+       }
+
+       html, body, #container {
+           height: 100%;
+       }
+
+       #timeline {
+           width: 100%;
+       }
+
+       .post {
+           width: 600px;
+           margin: 30px auto;
+           background: #EEEEEE;
+       }
+
+       .scheduled_post {
+           width: 600px;
+           margin: 30px auto;
+           background: #EEEEEE;
+           color: grey
+       }
+
+       .title {
+           background: #CCCCCC;
+       }
+
+       .insight {
+           background: #EEEEEE;
+       }
+
+       .pic {
+           background: #EEEEEE;
+       }
+
+       #publish_box {
+           height: 160px;
+           border: 2px dashed orange;
+           padding: 0 5px;
+       }
+
+       #publish_module {
+           width: 100%;
+           height: 100%;
+           overflow: hidden;
+           position: relative;
+       }
+
+       .progress-bar-cover {
+           position: absolute;
+           height: 100%;
+           width: 100%;
+           z-index: 998;
+           top: 0;
+           left: 0;
+           justify-content: center;
+           align-items: center;
+           display: flex;
+           background: rgba(255, 255, 255, 0.6);
+       }
+
+       .progress-bar-cover .progress-bar {
+           height: 30px;
+           width: 80%;
+       }
+
+       .no-size {
+           max-width: 0;
+           max-height: 0;
+           margin: 0 !important;
+           padding: 0 !important;
+           border: none !important;
+           border-radius: 0;
+       }
+
+       .message-input {
+           width: 98%;
+           margin: 3px 1%;
+           height: calc(100% - 60px)
+       }
+
+       .input-button-group {
+           display: inline-block;
+       }
+
+       .button-active {
+           background: #007fff !important;
+           color: #ffffff !important;
+       }
+
+   </style>
+</head>
+<body>
+<div class="overlay">
+   <div id="login_button">
+       <fb:login-button
+               scope="email, publish_actions, manage_pages,pages_manage_cta,publish_pages,pages_show_list,read_insights"
+               onlogin="login">
+       </fb:login-button>
+   </div>
+</div>
+<div id="container"></div>
+<template id="post_template">
+   <div class="post">
+       <div class="title"></div>
+       <div class="insight"></div>
+       <div class="msg"></div>
+       <div class="text"></div>
+       <div class="pic"></div>
+   </div>
+</template>
+
+<template id="publish_module">
+   <div class="progress-bar-cover">
+       <div class="progress-bar"></div>
+   </div>
+   <textarea class="message-input" name="message" placeholder="Write your message here"></textarea>
+   <!-- Build the input as a button, the icon is from FontAwesome, the input itself is
+    put to 0 size so it looks hidden but still exists (fully hidden input won't function).-->
+   <div class="input-button-group">
+       <input type="file" accept="image/*" class="no-size" name="image_upload" multiple="multiple">
+       <button class="image-button"><i class="fa fa-image"></i></button>
+   </div>
+   <div class="input-button-group">
+       <input type="file" accept="video/*" class="no-size" name="video_upload">
+       <button class="video-button"><i class="fab fa-youtube"></i></button>
+   </div>
+   <div class="input-button-group">
+       <input type="text" name="delay_date" class="no-size">
+       <button class="date-picker"><i class="far fa-calendar-alt"></i><span></span></button>
+   </div>
+   <button class="post-button">Post</button>
+</template>
+
+
+<script>
+   var tokenMachine = {
+       storage_name: "ACCESS_TOKEN",
+
+       lock: null,
+
+       init: function () {
+           this.loadToken();
+       },
+
+       token_requesters: [],
+
+       getToken: function (callback) {
+           if (this.lock === null) {
+               if (this.current_token != null) {
+                   callback(this.current_token);
+               }
+               else {
+                   this.token_requesters.push(callback);
+                   this.forceLogin();
+               }
+           }
+           else {
+               this.token_requesters.push(callback);
+           }
+       },
+
+       current_token: null,
+
+       saveToken: function () {
+           localStorage.setItem(this.storage_name, this.current_token);
+       },
+
+       loadToken: function () {
+           this.current_token = localStorage.getItem(this.storage_name) || null;
+           this.checkValid();
+       },
+
+       forceLogin: function () {
+           $('.overlay').show();
+           $('#login_button').show();
+       },
+
+       statusChangeCallback: function (response) {
+           console.log('statusChangeCallback');
+           console.log(response);
+           if (response.status === 'connected') {
+               this.current_token = response.authResponse.accessToken;
+               this.saveToken();
+               this.clearQueue();
+           } else {
+               this.forceLogin()
+           }
+       },
+
+       clearQueue: function () {
+           var trlist = this.token_requesters;
+           this.token_requesters = [];
+           for (var i of trlist) {
+               i(this.current_token);
+           }
+       },
+
+       checkValid: function () {
+           this.lock = "locked";
+           FB.api("/me", {access_token: this.current_token}, (Response => {
+               this.lock = null;
+               if (!(Response.error)) {
+                   this.clearQueue();
+               }
+               else {
+                   this.forceLogin();
+               }
+           }).bind(tokenMachine));
+       },
+
+       revoke: function () {
+           this.current_token = null;
+           localStorage.removeItem(this.storage_name);
+       }
+   }
+
+   var renderMachine = {
+       init: function () {
+           console.log("rendering");
+           this.init_op_ui();
+           tokenMachine.getToken(this.update_top.bind(renderMachine));
+           tokenMachine.getToken(this.add_pagebar.bind(renderMachine));
+           tokenMachine.getToken(this.add_publish_window.bind(renderMachine));
+           $('.overlay').hide()
+       },
+
+       page_tokens: {},
+       page_id: null,
+
+
+       init_op_ui: function () {
+           var pstyle = 'background-color: #F5F6F7; border: 1px solid #dfdfdf; padding: 5px;';
+           $('#container').w2layout({
+               name: 'layout',
+               panels: [
+                   {type: 'top', size: 50, resizable: true, style: pstyle, content: '<div name="top bar">'},
+                   {
+                       type: 'left', size: 200, resizable: true, style: pstyle, content: $().w2sidebar({
+                           name: 'sidebar',
+                           nodes: [],
+                       })
+                   },
+                   {type: 'main', style: pstyle, content: '<div id= "publish_box"></div>'},
+                   {
+                       type: 'preview',
+                       size: '80%',
+                       resizable: false,
+                       style: pstyle,
+                       content: '<div id="scheduled_timeline"> </div> <div id="timeline"> </div>'
+                   },
+                   {type: 'right', size: 200, resizable: true, style: pstyle},
+                   // {type: 'bottom', size: 50, resizable: true, style: pstyle, content: 'bottom'}
+               ]
+           });
+       },
+
+       update_top: function (access_token) {
+           $(w2ui['layout'].el('top')).html('');
+           FB.api("/me", {'access_token': access_token},
+               response => {
+                   w2ui['layout'].el('top').append('Thanks for logging in, ' + response.name + '!')
+               }
+           );
+           var revoke_button = $('<div><button onclick="renderMachine.logout()">LOGOUT</button></div>');
+           $(w2ui['layout'].el('top')).append(revoke_button);
+       },
+
+       add_pagebar: function (access_token) {
+           // w2ui['layout'].el('').append("you are managing following pages:" + response.data.map(d => d.name).join(" ,"));]
+           FB.api('/me/accounts', {'access_token': access_token}, response => {
+                   response.data.map(d => (this.page_tokens[d.id] = d.access_token));
+                   w2ui.sidebar.add(
+                       response.data.map(d => ({
+                           id: "page_" + d.id,
+                           text: d.name,
+                           icon: 'w2ui-icon-check',
+                           onClick: function () {
+                               renderMachine.show_pages(d.id)
+                           }
+                       })));
+               }
+           );
+       },
+
+       show_pages: function (page_id) {
+           //console.log('/' + page_id + '/posts')
+           //FB.api('/'+page_id+'/posts', response=>console.log(response));
+           //localStorage.setItem("PAGE_ID", PAGE_ID);
+           this.page_id = page_id;
+
+           $('#scheduled_timeline').html("");
+           var request = '/' + this.page_id + '/promotable_posts?fields=story, message, name,full_picture&is_published=false'
+           FB.api(request, {access_token: this.page_tokens[this.page_id]}, (function (response) {
+               this.add_posts(response, '#scheduled_timeline')
+           }).bind(renderMachine));
+
+           $('#timeline').html("");
+           var request = '/' + this.page_id + '/posts?fields=story, message, name,full_picture'
+           FB.api(request, {access_token: this.page_tokens[this.page_id]}, (function (response) {
+               this.add_posts(response, '#timeline')
+           }).bind(renderMachine));
+
+           //$('#postbox').html('<div id="new post"><input id="post" type="text"><button onclick="publish();">publish</button>');
+           $(w2ui.layout.el('right')).html("");
+           //create_upload_button($(w2ui.layout.el('right')));
+       },
+
+       add_posts: function (response, timeline) {
+           console.log(response);
+           for (var post of response.data) {
+               //console.log(post.id);
+               //console.log(post);
+               var x = $($('#post_template').html());
+               var title = ""
+               if (post.story & post.name) {
+                   title = post.story + ":" + post.name
+               }
+               else if (post.name) {
+                   title = post.name
+               }
+               else if (post.story) {
+                   title = post.story
+               }
+               if (title == "") {
+                   title = "Post";
+               }
+               x.find('.title').text(title);
+               if (post.message) {
+                   x.find('.msg').text(post.message);
+               } else {
+                   x.find('.msg').hide
+               }
+               if (post.full_picture) {
+                   x.find('.pic').html("<img src = '" + post.full_picture + "' width=560 align=\"middle\" style=\"margin:20px 20px\">");
+               } else
+                   x.find('.pic').hide;
+               //FB.api('/'+post.id+'/insights/post_impressions', {access_token:PAGE_TOKENS[PAGE_ID]}, function (response) {x.find('.insight').html("Total impressions: "+response.data[0].values[0].value)});
+               //console.log(x);
+               this.get_insights(x, post);
+               console.log(timeline)
+               if (timeline == '#scheduled_timeline') {
+                   x.attr('class', 'scheduled_post');
+               }
+               $(timeline).append(x);
+           }
+       },
+
+       get_insights: function (x, post) {
+           FB.api('/' + post.id + '/insights?metric=post_impressions,post_impressions_unique', {access_token: this.page_tokens[this.page_id]}, function (response) {
+               x.find('.insight').text("Total impressions: " + response.data[0].values[0].value + "\t\tTotal unique impressions: " + response.data[1].values[0].value)
+           });
+       },
+
+       logout: function () {
+           $('#container').innerHTML = "";
+           tokenMachine.revoke();
+           tokenMachine.getToken(renderMachine.init.bind(renderMachine));
+       },
+
+       add_publish_window: function () {
+           var x = $($('#publish_module').html());
+           $("#publish_box").html(x);
+           postModule.init();
+       }
+
+   };
+
+   var postModule = {
+       package: {},
+       panel: null,
+       init: function () {
+           this.panel = $('#publish_box');
+           this.panel.find('.progress-bar-cover').hide();
+
+           this.panel.find('.post-button').button().css({
+               float: 'right',
+           }).click(this.upload_package.bind(this));
+
+           this.panel.find('input[name="delay-date"]').w2field('datetime', {});
+           var input_groups = this.panel.find('.input-button-group');
+           // just some display tricks, let the button light up when there are content set
+           // and clicking it again removes the content and reset button
+           input_groups.find('button').button().click(function (event) {
+               var target = $(event.currentTarget);
+               if (target.hasClass('button-active')) {
+                   target.removeClass('button-active');
+                   target.parent().find('input').val('').change();
+               } else {
+                   target.parent().find('input').click();
+               }
+           });
+           input_groups.find('input').change(function (event) {
+               var target = $(event.target);
+               if (target.val()) {
+                   target.parent().find('button').addClass('button-active').find('span').text(target.val());
+               } else {
+                   target.parent().find('button').removeClass('button-active').find('span').text('');
+               }
+               this.update_package(event);
+           }.bind(this));
+           this.panel.find('.message-input').change(this.update_package.bind(this));
+
+       },
+
+       update_package: function (event) {
+           if (event.target.type === 'file') {
+               this.package[event.target.name] = event.target.files;
+           } else {
+               this.package[event.target.name] = event.target.value;
+           }
+       },
+
+       upload_package: function () {
+           console.log('Pretending uploading');
+           this.set_progress(0, 0);
+           var current_progress = 0;
+           var total_progress = 0;
+           var stage_one = []; // upload image, upload video, return media_id ; relatively, putting everything together and send post is stage_two
+           var page_id = ''; //todo get page id
+
+           // a helper inline function
+           var advance_progress = function () {
+               ++current_progress;
+               if (current_progress === total_progress) {
+                   this.set_progress(); // finish
+                   this.clear_all(); // and clean cache & inputs
+               } else {
+                   this.set_progress(current_progress, total_progress);
+               }
+           }.bind(this);
+
+           // stage one items
+           if (this.package.video_upload) {
+               ++total_progress;
+               let file = this.package.video_upload[0]; // only upload one file
+               tokenMachine.getToken(function (file, token) {
+                   var promise = this.fb_api_video(file, page_id, token);
+                   promise.then(advance_progress);
+                   stage_one.push(promise);
+               }.bind(this, file));  // the python "partial" way. as file/page_id may change in the outer scope, we bind them NOW and HERE to future callbacks
+           }
+
+           if (this.package.image_upload) {
+               ++total_progress;
+               let files = this.package.image_upload; // just use a FileList object, may contain multiple files, must iterate
+               tokenMachine.getToken(function (files, token) {
+                   var promise = this.fb_api_images(files, page_id, token);
+                   promise.then(advance_progress);
+                   stage_one.push(promise);
+               }.bind(this, files))
+           }
+
+           // and more steps.... if there are more fields in this.package
+
+
+           ++total_progress;
+           tokenMachine.getToken(function (message, token) {
+               Promise.all(stage_one).then(function (media_ids) {
+                   //todo here we have all media ids from stage one uploading, we can call the message sending api
+                   // and after finishing sending, we should also call advance_progress, just like above.
+                   // following is just example
+                   var promise = this.fb_api_message(media_ids, message, token, this.package.delay_date);
+                   promise.then(advance_progress);
+               }.bind(this))
+           }.bind(this, this.package.message));
+       },
+
+       fb_api_video: function (file, page_id, access_token) {
+           return new Promise(function (resolve, reject) {
+               console.log('uploading', file);
+               var url = 'https://graph-video.facebook.com/v2.11/' + page_id + '/videos';
+
+               var upload_log = {};
+
+               function do_send(url) {
+                   console.log('Sending ' + upload_log.end + '/' + file.size);
+                   post_with_blob(
+                       url,
+                       {
+                           access_token: access_token,
+                           upload_phase: 'transfer',
+                           start_offset: upload_log.start,
+                           upload_session_id: upload_log.sess,
+                           video_file_chunk: file.slice(upload_log.start, upload_log.end + 1)  // a Blob object, end is exlusive so +1
+                       },
+                       function (resp) {
+                           upload_log.start = resp.start_offset;
+                           upload_log.end = resp.end_offset;
+
+                           if (upload_log.start !== upload_log.end) {
+                               do_send();
+                           } else {
+                               // start == end, so send finish. finalize
+                               console.log('Finishing transmission');
+                               post_with_blob(
+                                   url,
+                                   {
+                                       access_token: access_token,
+                                       upload_phase: 'finish',
+                                       upload_session_id: upload_log.sess,
+                                   },
+                                   function (resp) {
+                                       if (!resp.success) {
+                                           console.error('Error, check video status ' + upload_log.sess, resp);
+                                           reject(); // failed
+                                       } else {
+                                           console.log('Success, check video status ' + upload_log.sess);
+                                           resolve(upload_log.vid); // good , return video id
+                                       }
+                                   });
+                           }
+                       }
+                   )
+               }
+
+               post_with_blob(
+                   url,
+                   {
+                       access_token: access_token,
+                       upload_phase: 'start',
+                       file_size: file.size
+                   },
+                   function (resp) {
+                       upload_log.sess = resp.upload_session_id;
+                       upload_log.vid = resp.video_id;
+                       upload_log.start = resp.start_offset;
+                       upload_log.end = resp.end_offset;
+
+                       do_send(url);
+                   }
+               )
+           });
+       },
+
+       fb_api_images: function (imgfiles, page_id, access_token) {
+           return new Promise(function (resolve, reject) {
+               var page_id = PAGE_ID;
+               console.log(file);
+               var url = 'https://graph.facebook.com/v2.11/' + page_id + '/feed';
+
+               post_with_blob(url, {  //todo here post_with_blob should be used
+                       // some field
+                       // some field
+                   }, function (resp) {
+                       resolve(extract_the_media_id_from_resp);
+                   }, reject);
+           });
+       },
+
+       fb_api_message: function (media_ids, page_id, access_token, delay) {
+           if (delay) {
+               delay = new Date(Date.parse(delay)); // convert delay_date from 2/2/2018 01:23 to a Date object
+           }
+           return new Promis(function (resolve, reject) {
+               console.log(PAGE_ID)
+               console.log($("#post").val())
+               FB.api(
+                   "/" + PAGE_ID + "/feed",
+                   "POST",
+                   {
+                       "message": $("#post").val(),
+                       "access_token": PAGE_TOKENS[PAGE_ID]
+                   },
+                   function (response) {
+                       if (response && !response.error) {
+                           /* handle the result */
+                           alert("Great Post!");
+                           show_pages(PAGE_ID);
+                       }
+                       else {
+                           alert(response.error.error_user_msg)
+                           console.log(response.error);
+                       }
+                   }
+               );
+           }
+       },
+
+       set_progress: function (current, max) {
+           if (current === undefined) {
+               // delete progress bar and hide
+               this.panel.find('.progress-bar-cover').hide();
+           } else if (max === 0) {
+               this.panel.find('.progress-bar-cover').show().find('.progress-bar').progressbar({
+                   value: false // infinite waiting
+               });
+           } else {
+               this.panel.find('.progress-bar-cover').show().find('.progress-bar').progressbar({
+                   value: current,
+                   max: max
+               });
+           }
+       },
+
+       clear_all: function () {
+           this.package = {};
+           this.panel.find('textarea,input').val('').change();
+       }
+   };
+
+
+   function login() {
+       FB.getLoginStatus(function (response) {
+           tokenMachine.statusChangeCallback(response);
+       });
+   }
+
+   function post_with_blob(url, obj, onsuccess, onfail) {
+       var data = new FormData();
+       for (var k in obj) {
+           if (obj.hasOwnProperty(k)) {
+               data.append(k, obj[k]);
+           }
+       }
+
+       $.ajax({
+           type: 'POST',
+           url: url,
+           data: data,
+           processData: false,
+           contentType: false,
+           success: onsuccess,
+           error: onfail
+       });
+   }
+
+   $(function () {
+       FB.init({
+           appId: '135046373960941',
+           status: true,
+           cookie: true,
+           xfbml: true,
+           version: 'v2.11'
+       });
+       FB.AppEvents.logPageView();
+       tokenMachine.init();
+
+       console.log("FBinitiated");
+       tokenMachine.getToken(renderMachine.init.bind(renderMachine))
+   });
+</script>
+</body>
+</html>
+
+
+

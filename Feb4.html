@@ -41,7 +41,7 @@
         <!-- Build the input as a button, the icon is from FontAwesome (check website), the input itself is
          put to 0 size so it looks hidden but still exists (fully hidden input won't function).-->
         <div class="input-button-group">
-            <input type="file" accept="image/*" class="no-size" name="image_upload">
+            <input type="file" accept="image/*" class="no-size" name="image_upload" multiple="multiple">
             <button class="image-button"><i class="fa fa-image"></i></button>
         </div>
         <div class="input-button-group">
@@ -324,6 +324,7 @@
                 this.panel.find('.message-input').change(this.update_package.bind(this));
 
             },
+
             update_package: function (event) {
                 if (event.target.type === 'file') {
                     this.package[event.target.name] = event.target.files;
@@ -331,9 +332,10 @@
                     this.package[event.target.name] = event.target.value;
                 }
             },
+
             upload_package: function () {
                 console.log('Pretending uploading');
-                console.log(this.package);
+                var ajax_req = {}
                 this.set_progress(0, 0);
                 var current_progress = 0;
                 var total_progress = 0;
@@ -341,7 +343,13 @@
                     if (!this.package.hasOwnProperty(key)) {
                         continue;
                     }
-                    // check each key, and send, if possible, find a way to set total_progress to actual steps
+                    if(this.package.delay-date){
+
+                    }
+                    if(this.package.image_upload){
+                    }
+                    if(this.package.video_upload){
+                    }
                 }
                 total_progress = 5;
                 // the following is pseudo code just to test
@@ -356,9 +364,136 @@
                     }.bind(this))
                 }
             },
+
             _pseudo_fb_api_request: function (time_taken, callback){
                 setTimeout(callback, time_taken*1000);
             },
+
+
+            fb_api_video: function(){
+                var page_id = PAGE_ID;
+                console.log(file)
+                    var url='https://graph-video.facebook.com/v2.11/' + page_id + '/videos'
+
+                var upload_log = {};
+
+                function post_with_blob(url, obj, callback) {
+                    var data = new FormData();
+                    for (var k in obj) {
+                        if (obj.hasOwnProperty(k)) {
+                            data.append(k, obj[k]);
+                        }
+                    }
+
+                    $.ajax({
+                        type: 'POST',
+                        url: url,
+                        data: data,
+                        processData: false,
+                        contentType: false,
+                        success: callback
+                    });
+                }
+
+                function do_send(url) {
+                    console.log('Sending ' + upload_log.end + '/' + file.size);
+                    post_with_blob(
+                        url,
+                        {
+                            access_token: PAGE_TOKENS[PAGE_ID], // todo not good , change it to acquire accestoken in runtime
+                            upload_phase: 'transfer',
+                            start_offset: upload_log.start,
+                            upload_session_id: upload_log.sess,
+                            video_file_chunk: file.slice(upload_log.start, upload_log.end + 1)  // a Blob object, end is exlusive so +1
+                        },
+                        function (resp) {
+                            upload_log.start = resp.start_offset;
+                            upload_log.end = resp.end_offset;
+
+                            if (upload_log.start !== upload_log.end) {
+                                do_send();
+                            } else {
+                                // start == end, so send finish. finalize
+                                console.log('Finishing transmission');
+                               post_with_blob(
+                                    url,
+                                    {
+                                        access_token: PAGE_TOKENS[PAGE_ID], // todo not good , change it to acquire accestoken in runtime
+                                        upload_phase: 'finish',
+                                        upload_session_id: upload_log.sess,
+                                        title: 'test video', // and anything on https://developers.facebook.com/docs/graph-api/reference/page/videos
+                                        description: 'just test',
+                                    },
+                                    function (resp) {
+                                        if (!resp.success) {
+                                            console.error('Error, check video status ' + upload_log.sess, resp);
+                                        } else {
+                                            console.log('Success, check video status ' + upload_log.sess);
+                                        }
+                                    });
+                            }
+                        }
+                    )
+                }
+
+                post_with_blob(
+                    url,
+                    {
+                        access_token: accessTokenCache, // todo not good , change it to acquire accestoken in runtime
+                        upload_phase: 'start',
+                        file_size: file.size
+                    },
+                    function (resp) {
+                        upload_log.sess = resp.upload_session_id;
+                        upload_log.vid = resp.video_id;
+                        upload_log.start = resp.start_offset;
+                        upload_log.end = resp.end_offset;
+
+                        do_send(url);
+                    }
+                )
+            },
+
+            fb_api_images: function(){
+                var page_id = PAGE_ID;
+                console.log(file)
+                var url='https://graph.facebook.com/v2.11/' + page_id + '/feed'
+
+                $.ajax({
+                        type: 'POST',
+                        url: url,
+                        data: data,
+                        processData: false,
+                        contentType: false,
+                        success: callback
+                    });
+            },
+
+            fb_api_message: function(){
+                console.log(PAGE_ID)
+                console.log($("#post").val())
+                FB.api(
+                    "/" + PAGE_ID + "/feed",
+                    "POST",
+                    {
+                    "message": $("#post").val(),
+                    "access_token": PAGE_TOKENS[PAGE_ID]
+                    },
+                    function (response) {
+                        if (response && !response.error) {
+                            /* handle the result */
+                            alert("Great Post!");
+                            show_pages(PAGE_ID);
+                        }
+                        else {
+                            alert(response.error.error_user_msg)
+                            console.log(response.error);
+                        }
+                    }
+                );
+
+            },
+
             set_progress: function (current, max) {
                 if (current === undefined) {
                     // delete progress bar and hide
@@ -374,6 +509,7 @@
                     });
                 }
             },
+
             clear_all: function () {
                 this.package = {};
                 this.panel.find('textarea,input').val('').change();
