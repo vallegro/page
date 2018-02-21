@@ -33,10 +33,14 @@ html, body, #container {
 
 .title {
     background: #CCCCCC;
+    font-size: large;
 }
 
 .insight {
     background: #EEEEEE;
+    color: red;
+    font-size: small;
+    alignment: right;
 }
 
 .pic {
@@ -96,4 +100,10 @@ html, body, #container {
 .button-active {
     background: #007fff !important;
     color: #ffffff !important;
+}
+
+.post_img {
+    width: 100%;
+    align: 'middle';
+    margin: 100px;
 }

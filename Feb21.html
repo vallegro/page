@@ -13,124 +13,7 @@
    <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
    <link rel="stylesheet" href="http://rawgit.com/vitmalina/w2ui/master/dist/w2ui.min.css">
    <script src="http://rawgit.com/vitmalina/w2ui/master/dist/w2ui.min.js"></script>
-   <style>
-       .overlay {
-           width: 100%;
-           height: 100%;
-           z-index: 99999;
-           background: white;
-           position: fixed;
-           left: 0;
-           top: 0;
-           display: flex;
-           justify-content: center;
-       }
-
-
-       html, body, #container {
-           height: 100%;
-       }
-
-
-       #timeline {
-           width: 100%;
-       }
-
-
-       .post {
-           width: 600px;
-           margin: 30px auto;
-           background: #EEEEEE;
-       }
-
-
-       .scheduled_post {
-           width: 600px;
-           margin: 30px auto;
-           background: #EEEEEE;
-           color: grey
-       }
-
-
-       .title {
-           background: #CCCCCC;
-       }
-
-
-       .insight {
-           background: #EEEEEE;
-       }
-
-
-       .pic {
-           background: #EEEEEE;
-       }
-
-
-       #publish_box {
-           height: 160px;
-           border: 2px dashed orange;
-           padding: 0 5px;
-       }
-
-
-       #publish_module {
-           width: 100%;
-           height: 100%;
-           overflow: hidden;
-           position: relative;
-       }
-
-
-       .progress-bar-cover {
-           position: absolute;
-           height: 100%;
-           width: 100%;
-           z-index: 998;
-           top: 0;
-           left: 0;
-           justify-content: center;
-           align-items: center;
-           display: flex;
-           background: rgba(255, 255, 255, 0.6);
-       }
-
-
-       .progress-bar-cover .progress-bar {
-           height: 30px;
-           width: 80%;
-       }
-
-
-       .no-size {
-           max-width: 0;
-           max-height: 0;
-           margin: 0 !important;
-           padding: 0 !important;
-           border: none !important;
-           border-radius: 0;
-       }
-
-
-       .message-input {
-           width: 98%;
-           margin: 3px 1%;
-           height: calc(100% - 60px)
-       }
-
-
-       .input-button-group {
-           display: inline-block;
-       }
-
-
-       .button-active {
-           background: #007fff !important;
-           color: #ffffff !important;
-       }
-
-
-   </style>
+    <link rel="stylesheet" href="./style.css">
 </head>
 <body>
 <div class="overlay">
@@ -308,6 +191,7 @@
                        type: 'left', size: 200, resizable: true, style: pstyle, content: $().w2sidebar({
                            name: 'sidebar',
                            nodes: [],
+                           style: pstyle
                        })
                    },
                    {type: 'main', style: pstyle, content: '<div id= "publish_box"></div>'},
@@ -374,7 +258,7 @@
 
 
                $('#timeline').html("");
-               var request = '/' + this.page_id + '/posts?fields=story, message, name,full_picture'
+               var request = '/' + this.page_id + '/posts?fields=story, message, name, attachments'
                try {
                    FB.api(request, {access_token: tokenMachine.getPageToken(this.page_id)}, (function (response) {
                        this.add_posts(response, '#timeline')
@@ -417,8 +301,22 @@
                } else {
                    x.find('.msg').hide
                }
-               if (post.full_picture) {
-                   x.find('.pic').html("<img src = '" + post.full_picture + "' width=560 align=\"middle\" style=\"margin:20px 20px\">");
+               if (post.attachments) {
+                   console.log(post.attachments);
+                   var att_resp = post.attachments.data[0];
+                   var att_html = null;
+                   if(att_resp.subattachments){
+                       att_html = att_resp.subattachments.data.map(x=>"<img src = '" + x.media.image.src + "' width=400 align=\"middle\" style=\"margin:20px 20px\">").join("")
+                   }
+                   else{
+                       if(att_resp.type=="video_autoplay"){
+                           att_html = "<a href=\""+ att_resp.target.url+"\"> <img src = '" + att_resp.media.image.src + "' width=400 align=\"middle\" style=\"margin:20px 20px\"></a>"
+                       }
+                       else {
+                           att_html = "<img src = '" + att_resp.media.image.src + "' width=400 align=\"middle\" style=\"margin:20px 20px\">"
+                       }
+                   }
+                   x.find('.pic').html(att_html);
                } else
                    x.find('.pic').hide;
                //FB.api('/'+post.id+'/insights/post_impressions', {access_token:PAGE_TOKENS[PAGE_ID]}, function (response) {x.find('.insight').html("Total impressions: "+response.data[0].values[0].value)});
@@ -463,11 +361,11 @@
 
    var postModule = {
        package: {},
+       page_id: null,
        panel: null,
        init: function () {
            this.panel = $('#publish_box');
            this.panel.find('.progress-bar-cover').hide();
-
 
            this.panel.find('.post-button').button().css({
                float: 'right',
@@ -475,6 +373,7 @@
 
 
            this.panel.find('input[name="delay_date"]').w2field('datetime', {});
+
            var input_groups = this.panel.find('.input-button-group');
            // just some display tricks, let the button light up when there are content set
            // and clicking it again removes the content and reset button
@@ -487,6 +386,7 @@
                    target.parent().find('input').click();
                }
            });
+
            input_groups.find('input').change(function (event) {
                var target = $(event.target);
                if (target.val()) {
@@ -513,7 +413,7 @@
 
        upload_package: function () {
            console.log('uploading');
-           var page_id = ''; //todo get page id
+           postModule.page_id = renderMachine.page_id; //todo get page id
            var iv = '';
            if (this.package.iv_upload) {
                for (var f of this.package.iv_upload) {
@@ -542,7 +442,7 @@
                    var file = this.package.iv_upload[0];
                    var delay = this.package.delay_date?Date.parse(this.package.delay_date):undefined;
                    var message = this.package.message;
-                   var page_id = renderMachine.page_id;
+                   var page_id = this.page_id;
                    token = tokenMachine.getPageToken(page_id);
                    this.fb_api_video(file, page_id, {'delay': delay, 'message': message}, token).then(function () {
                        renderMachine.show_pages(page_id);
@@ -556,7 +456,7 @@
                    var file = this.package.iv_upload[0];
                    var delay = this.package.delay_date?Date.parse(this.package.delay_date):undefined;
                    var message = this.package.message;
-                   var page_id = renderMachine.page_id;
+                   var page_id = this.page_id;
                    token = tokenMachine.getPageToken(page_id);
                    this.fb_api_images(file, page_id, {'delay': delay, 'message': message}, token).then(function () {
                        renderMachine.show_pages(page_id);
@@ -569,7 +469,7 @@
                tokenMachine.getToken(function (token) {
                    var delay = this.package.delay_date?Date.parse(this.package.delay_date):undefined;
                    var message = this.package.message;
-                   var page_id = renderMachine.page_id;
+                   var page_id = this.page_id;
                    token = tokenMachine.getPageToken(page_id);
                    this.fb_api_message(page_id, {'delay': delay, 'message': message}, token).then(function () {
                        renderMachine.show_pages(page_id);
