@@ -1,0 +1,814 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Facebook Page</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="http://w2ui.com/src/w2ui-1.5.rc1.min.css"/>
+    <script src="http://w2ui.com/src/w2ui-1.5.rc1.min.js"></script>
+    <script defer src="https://use.fontawesome.com/releases/v5.0.4/js/all.js"></script>
+    <script src="https://connect.facebook.net/ja_JP/sdk.js#xfbml=1&version=v2.11"></script>
+    <link rel="stylesheet" href="./style.css">
+    <link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/themes/base/jquery-ui.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
+    <link rel="stylesheet" href="http://rawgit.com/vitmalina/w2ui/master/dist/w2ui.min.css">
+    <script src="http://rawgit.com/vitmalina/w2ui/master/dist/w2ui.min.js"></script>
+    <link rel="stylesheet" href="./style.css">
+    <title>Title</title>
+
+
+    <script>
+        var tokenMachine = {
+            tokenRequestors: [],
+            pageTokenRequestors: [],
+            accessToken: null,
+            pageTokens: {},
+            lock: null,
+
+            init: function () {
+                FB.getLoginStatus(function (resp) {
+                    if (resp.status === "connected") {
+                        tokenMachine.accessToken = resp.authResponse.accessToken;
+                        tokenMachine.loadPageTokens();
+                    }
+                    else {
+                        tokenMachine.forceLogin();
+                    }
+                })
+            }
+            ,
+
+
+            loadPageTokens: function () {
+                var readPages = new Promise(function (resolve, reject) {
+                    FB.api("/me/accounts",
+                        {access_token: tokenMachine.accessToken},
+                        (response => {
+                            if (!response.error) {
+                                response.data.map(d => (tokenMachine.pageTokens[d.id] = d.access_token));
+                                resolve()
+                            }
+                            else {
+                                reject(response.error)
+                            }
+                        })
+                    );
+                });
+
+                readPages.then(this.clearPageQueue.bind(tokenMachine), errorHandler);
+            }
+            ,
+
+            login: function () {
+                FB.getLoginStatus(function (response) {
+                    tokenMachine.statusChangeCallback(response);
+                });
+            }
+            ,
+
+            statusChangeCallback: function (response) {
+                console.log('statusChangeCallback');
+                console.log(response);
+                if (response.status === 'connected') {
+                    this.accessToken = response.authResponse.accessToken;
+                    this.clearQueue();
+                    this.loadPageTokens();
+                } else {
+                    this.forceLogin()
+                }
+            }
+            ,
+
+
+            getToken: function (callback) {
+                if (this.lock === null) {
+                    if (this.accessToken != null) {
+                        callback(this.accessToken);
+                    }
+                    else {
+                        this.tokenRequestors.push(callback);
+                        this.forceLogin();
+                    }
+                }
+                else {
+                    this.tokenRequestors.push(callback);
+                }
+            }
+            ,
+
+            getPageToken: function (callback, page_id) {
+                if (this.lock === null) {
+                    if (this.pageTokens[page_id] != null) {
+                        callback(this.pageTokens[page_id]);
+                    }
+                    else {
+                        console.error("Page" + page_id + "\'s token is not cached");
+                        this.pageTokenRequestors.push([callback, page_id]);
+                        this.forceLogin();
+                    }
+                }
+                else {
+                    this.pageTokenRequestors.push([callback, page_id]);
+                }
+            }
+            ,
+
+
+            forceLogin: function () {
+                $('.overlay').show();
+                $('#login_button').show();
+            }
+            ,
+
+
+            clearQueue: function () {
+                var trlist = this.tokenRequestors;
+                this.tokenRequestors = [];
+                for (var tr of trlist) {
+                    this.getToken(tr);
+                }
+            }
+            ,
+
+
+            clearPageQueue: function () {
+                var ptrlist = this.pageTokenRequestors;
+                this.pageTokenRequestors = [];
+                for (var ptr of ptrlist) {
+                    this.getPageToken(ptr[0], ptr[1]);
+                }
+            }
+            ,
+
+            revoke: function () {
+                this.accessToken = null;
+                this.pageTokens = {};
+                FB.logout(function (response) {
+                    if (!response.error) {
+                        console.log("logged out");
+                    }
+                    else {
+                        errorHandler(response.error);
+                    }
+                })
+            }
+        }
+
+        var renderMachine = {
+            init: function (access_token) {
+                console.log("rendering");
+                this.init_op_ui();
+                this.update_top(access_token);
+                this.add_pagebar(access_token);
+                this.add_publish_window(access_token);
+                $('.overlay').hide()
+            },
+            page_id: null,
+
+            init_op_ui: function () {
+                var pstyle = 'background-color: #F5F6F7; border: 1px solid #dfdfdf; padding: 5px;';
+                $('#container').w2layout({
+                    name: 'layout',
+                    panels: [
+                        {
+                            type: 'top',
+                            size: 150,
+                            resizable: true,
+                            style: pstyle,
+                            content: '<div id="topBarBG" style="height: 100%"></div><div id="gradient"><p id="welcome"></p><p id="revokeButton" ></p></div>'
+                        },
+                        {
+                            type: 'left', size: 200, resizable: true, style: pstyle, content: $().w2sidebar({
+                                name: 'sidebar',
+                                nodes: [],
+                                style: pstyle
+                            })
+                        },
+                        {type: 'main', style: pstyle, content: '<div id= "publish_box"></div>'},
+                        {
+                            type: 'preview',
+                            size: '80%',
+                            resizable: false,
+                            style: pstyle,
+                            content: '<div id="scheduled_timeline"> </div> <div id="timeline"> </div>'
+                        },
+                        {type: 'right', size: 200, resizable: true, style: pstyle},
+                        // {type: 'bottom', size: 50, resizable: true, style: pstyle, content: 'bottom'}
+                    ]
+                });
+            },
+
+
+            update_top: function (access_token) {
+                FB.api("/me", {'access_token': access_token},
+                    response => {
+                        $(w2ui['layout'].el('top')).find("#welcome").html('Thanks for logging in, ' + response.name + '!');
+                    }
+                );
+                var revokeButton = '<div><button onclick="renderMachine.logout()">LOGOUT</button></div>';
+                $(w2ui['layout'].el('top')).find("#revokeButton").html(revokeButton);
+            },
+
+
+            add_pagebar: function (access_token) {
+                // w2ui['layout'].el('').append("you are managing following pages:" + response.data.map(d => d.name).join(" ,"));]
+                FB.api('/me/accounts', {'access_token': access_token}, response => {
+                        w2ui.sidebar.add(
+                            response.data.map(d => ({
+                                id: "page_" + d.id,
+                                text: d.name,
+                                icon: 'w2ui-icon-check',
+                                onClick: function () {
+                                    renderMachine.show_pages(d.id).then(function () {
+                                        console.log("page" + d.id + " loaded");
+                                    }, errorHandler)
+                                }
+                            })));
+                    }
+                );
+            },
+
+
+            show_pages: function (page_id) {
+                //console.log('/' + page_id + '/posts')
+                //FB.api('/'+page_id+'/posts', response=>console.log(response));
+                //localStorage.setItem("PAGE_ID", PAGE_ID);
+
+                return new Promise(function (resolve, reject) {
+                    this.page_id = page_id;
+                    var request = '/' + this.page_id + '?fields=cover'
+                    try {
+                        tokenMachine.getPageToken(
+                            function (pageToken) {
+                                FB.api(request, {access_token: pageToken}, (function (response) {
+                                    this.set_cover(response)
+                                }).bind(renderMachine));
+                            }, renderMachine.page_id
+                        )
+                    }
+                    catch (err) {
+                        reject(err);
+                    }
+
+
+                    $('#scheduled_timeline').html("");
+                    var request = '/' + this.page_id + '/promotable_posts?fields=story, message, name,full_picture&is_published=false'
+
+                    try {
+                        tokenMachine.getPageToken(
+                            function (pageToken) {
+                                FB.api(request, {access_token: pageToken}, (function (response) {
+                                    this.add_posts(response, '#scheduled_timeline')
+                                }).bind(renderMachine));
+                            }, renderMachine.page_id
+                        )
+                    }
+                    catch (err) {
+                        reject(err);
+                    }
+
+
+                    $('#timeline').html("");
+                    var request = '/' + this.page_id + '/posts?fields=story, message, name, attachments'
+                    try {
+                        tokenMachine.getPageToken(
+                            function (pageToken) {
+                                FB.api(request, {access_token: pageToken}, (function (response) {
+                                    this.add_posts(response, '#timeline')
+                                }).bind(renderMachine));
+                            }, renderMachine.page_id
+                        )
+                    }
+                    catch (err) {
+                        reject(err);
+                    }
+
+                    //$('#postbox').html('<div id="new post"><input id="post" type="text"><button onclick="publish();">publish</button>');
+                    $(w2ui.layout.el('right')).html("");
+                    //create_upload_button($(w2ui.layout.el('right')));
+
+                    resolve();
+                }.bind(renderMachine));
+            },
+
+            set_cover: function (response) {
+                $(w2ui["layout"].el("top")).find("#topBarBG").css(
+                    {
+                        'background-image': 'url(' + response.cover.source + ')'
+                    });
+            },
+
+            add_posts: function (response, timeline) {
+                console.log(response);
+                for (var post of response.data) {
+                    //console.log(post.id);
+                    //console.log(post);
+                    var x = $($('#post_template').html());
+                    var title = ""
+                    if (post.story & post.name) {
+                        title = post.story + ":" + post.name
+                    }
+                    else if (post.name) {
+                        title = post.name
+                    }
+                    else if (post.story) {
+                        title = post.story
+                    }
+                    if (title == "") {
+                        title = "Post";
+                    }
+                    x.find('.title').text(title);
+                    if (post.message) {
+                        x.find('.msg').text(post.message);
+                    } else {
+                        x.find('.msg').hide
+                    }
+                    if (post.attachments) {
+                        console.log(post.attachments);
+                        var att_resp = post.attachments.data[0];
+                        var att_html = null;
+                        if (att_resp.subattachments) {
+                            att_html = att_resp.subattachments.data.map(x => "<img src = '" + x.media.image.src + "' width=550 align=\"middle\" style=\"margin:20px 20px\">").join("")
+                        }
+                        else {
+                            console.log(att_resp);
+                            if (att_resp.type.includes("video")) {
+                                att_html = "<p class='msg'>click to play video</p><a class='pic' href=\"" + att_resp.target.url + "\"> <img src = '" + att_resp.media.image.src + "' width=550 align='middle' style='margin:20px 20px'></a>"
+                            }
+                            else {
+                                att_html = "<img src = '" + att_resp.media.image.src + "' width=550 align='middle' style='margin:20px 20px'>"
+                            }
+                        }
+                        x.find('.pic').html(att_html);
+                    } else
+                        x.find('.pic').hide;
+                    //FB.api('/'+post.id+'/insights/post_impressions', {access_token:PAGE_TOKENS[PAGE_ID]}, function (response) {x.find('.insight').html("Total impressions: "+response.data[0].values[0].value)});
+                    //console.log(x);
+                    this.get_insights(x, post);
+                    console.log(timeline)
+                    if (timeline == '#scheduled_timeline') {
+                        x.attr('class', 'scheduled_post');
+                    }
+                    $(timeline).append(x);
+                }
+            },
+
+            get_insights: function (x, post) {
+                tokenMachine.getPageToken(
+                    function (pageToken) {
+                        FB.api('/' + post.id + '/insights?metric=post_impressions,post_impressions_unique', {access_token: pageToken}, function (response) {
+                            x.find('.insight').text("Total impressions: " + response.data[0].values[0].value + "\t\tTotal unique impressions: " + response.data[1].values[0].value)
+                        });
+                    }, renderMachine.page_id);
+            },
+
+
+            logout: function () {
+                $('#container').innerHTML = "";
+                tokenMachine.revoke();
+                tokenMachine.getToken(renderMachine.init.bind(renderMachine));
+            },
+
+
+            add_publish_window: function () {
+                var x = $($('#publish_module').html());
+                $("#publish_box").html(x);
+                postModule.init();
+            },
+
+            get_cur_pageid: function () {
+                return this.page_id
+            }
+
+
+        };
+
+        var postModule = {
+            package: {},
+            page_id: null,
+            panel: null,
+            init: function () {
+                this.panel = $('#publish_box');
+                this.panel.find('.progress-bar-cover').hide();
+
+                this.panel.find('.post-button').button().css({
+                    float: 'right',
+                }).click(this.upload_package.bind(this));
+
+
+                this.panel.find('input[name="delay_date"]').w2field('datetime', {});
+
+                var input_groups = this.panel.find('.input-button-group');
+                // just some display tricks, let the button light up when there are content set
+                // and clicking it again removes the content and reset button
+                input_groups.find('button').button().click(function (event) {
+                    var target = $(event.currentTarget);
+                    if (target.hasClass('button-active')) {
+                        target.removeClass('button-active');
+                        target.parent().find('input').val('').change();
+                    } else {
+                        target.parent().find('input').click();
+                    }
+                });
+
+                input_groups.find('input').change(function (event) {
+                    var target = $(event.target);
+                    if (target.val()) {
+                        target.parent().find('button').addClass('button-active').find('span').text(target.val());
+                    } else {
+                        target.parent().find('button').removeClass('button-active').find('span').text('');
+                    }
+                    this.update_package(event);
+                }.bind(this));
+                this.panel.find('.message-input').change(this.update_package.bind(this));
+
+
+            },
+
+
+            update_package: function (event) {
+                if (event.target.type === 'file') {
+                    this.package[event.target.name] = event.target.files;
+                } else {
+                    this.package[event.target.name] = event.target.value;
+                }
+            },
+
+
+            upload_package: function () {
+                console.log('uploading');
+                postModule.page_id = renderMachine.page_id; //todo get page id
+                var iv = '';
+                if (this.package.iv_upload) {
+                    for (var f of this.package.iv_upload) {
+                        let seg = f.name.toLowerCase().split(".");
+                        if (["3g2", "3gp", "3gpp", "asf", "avi", "dat", "divx", "dv", "f4v", "flv", "gif", "m2ts", "m4v", "mkv", "mod",
+                                "mov", "mp4", "mpe", "mpeg", "mpeg4", "mpg", "mts", "nsv", "ogm", "ogv", "qt", "tod", "ts", "vob", "wmv"].indexOf(seg[seg.length - 1]) >= 0) {
+                            iv = "video";
+                            if (this.package.iv_upload.length > 1) {
+                                alert("Please upload only one video file at a time without images.")
+                                this.package.iv_upload = null;
+                                this.panel.find("[name='iv_upload']").val("").change()
+                                return;
+                            }
+                        }
+                        else {
+                            iv = "images"
+                        }
+                    }
+                }
+
+
+                this.set_progress(0, 0);
+                // uploading
+                if (iv === "video") {
+                    tokenMachine.getToken(function (token) {
+                        var file = this.package.iv_upload[0];
+                        var delay = this.package.delay_date ? Date.parse(this.package.delay_date) : undefined;
+                        var message = this.package.message;
+                        var page_id = this.page_id;
+                        token = tokenMachine.getPageToken(page_id);
+                        this.fb_api_video(file, page_id, {'delay': delay, 'message': message}, token).then(function () {
+                            renderMachine.show_pages(page_id);
+                            this.set_progress();
+                            this.clear_all();
+                        }.bind(this), error_handling);
+                    }.bind(this));
+                }
+                else if (iv === "images") {
+                    tokenMachine.getToken(function (token) {
+                        var file = this.package.iv_upload[0];
+                        var delay = this.package.delay_date ? Date.parse(this.package.delay_date) : undefined;
+                        var message = this.package.message;
+                        var page_id = this.page_id;
+                        token = tokenMachine.getPageToken(page_id);
+                        this.fb_api_images(file, page_id, {
+                            'delay': delay,
+                            'message': message
+                        }, token).then(function () {
+                            renderMachine.show_pages(page_id);
+                            this.set_progress();
+                            this.clear_all();
+                        }.bind(this), error_handling);
+                    }.bind(this));
+                }
+                else {
+                    tokenMachine.getToken(function (token) {
+                        var delay = this.package.delay_date ? Date.parse(this.package.delay_date) : undefined;
+                        var message = this.package.message;
+                        var page_id = this.page_id;
+                        token = tokenMachine.getPageToken(page_id);
+                        this.fb_api_message(page_id, {'delay': delay, 'message': message}, token).then(function () {
+                            renderMachine.show_pages(page_id);
+                            this.set_progress();
+                            this.clear_all();
+                        }.bind(this), error_handling);
+                    }.bind(this));
+                }
+            },
+
+
+            fb_api_video: function (file, page_id, options, access_token) {
+                return new Promise(function (resolve, reject) {
+                    console.log('uploading', file);
+                    var url = 'https://graph-video.facebook.com/v2.11/' + page_id + '/videos';
+
+                    var upload_log = {};
+
+                    function do_send(url) {
+                        console.log('Sending ' + upload_log.end + '/' + file.size);
+                        post_with_blob(
+                            url,
+                            {
+                                access_token: access_token,
+                                upload_phase: 'transfer',
+                                start_offset: upload_log.start,
+                                upload_session_id: upload_log.sess,
+                                video_file_chunk: file.slice(upload_log.start, upload_log.end + 1)  // a Blob object, end is exlusive so +1
+                            },
+                            function (resp) {
+                                upload_log.start = resp.start_offset;
+                                upload_log.end = resp.end_offset;
+
+
+                                if (upload_log.start !== upload_log.end) {
+                                    do_send();
+                                } else {
+                                    // start == end, so send finish. finalize
+                                    console.log('Finishing transmission');
+                                    post_with_blob(
+                                        url,
+                                        {
+                                            access_token: access_token,
+                                            upload_phase: 'finish',
+                                            upload_session_id: upload_log.sess,
+                                            description: options.message,
+                                            published: !options.delay,
+                                            scheduled_publish_time: Math.floor((options.delay || 0) / 1000)
+                                        },
+                                        function (resp) {
+                                            if (!resp.success) {
+                                                reject(resp);
+                                            } else {
+                                                console.log('Success, check video status ' + upload_log.sess);
+                                                resolve(upload_log.vid); // good , return video id
+                                            }
+                                        },
+                                        function (xhr) {
+                                            reject(xhr.responseJSON);
+                                        });
+                                }
+                            },
+                            function (xhr) {
+                                reject(xhr.responseJSON);
+                            })
+                    }
+
+
+                    post_with_blob(
+                        url,
+                        {
+                            access_token: access_token,
+                            upload_phase: 'start',
+                            file_size: file.size
+                        },
+                        function (resp) {
+                            upload_log.sess = resp.upload_session_id;
+                            upload_log.vid = resp.video_id;
+                            upload_log.start = resp.start_offset;
+                            upload_log.end = resp.end_offset;
+
+
+                            do_send(url);
+                        },
+                        function (xhr) {
+                            reject(xhr.responseJSON);
+                        }
+                    )
+                });
+            },
+
+            /*
+                   fb_api_images: function (imgfiles, page_id, access_token) {
+                       return new Promise(function (resolve, reject) {
+                           //var page_id = PAGE_ID;
+                           //console.log(file);
+                           var url = 'https://graph.facebook.com/v2.11/' + page_id + '/photos';
+
+
+                           post_with_blob(url, {  //todo here post_with_blob should be used
+                               img: imgfiles[0],
+                               access_token: access_token,
+                               message: "aha"
+                           }, function (resp) {
+                               resolve(extract_the_media_id_from_resp);
+                           }, reject);
+                       });
+                   },
+            */
+            fb_api_images: function (file, page_id, options, access_token) {
+                return new Promise(function (resolve, reject) {
+                    console.log('uploading', file);
+                    var url = 'https://graph.facebook.com/v2.11/' + page_id + '/feed';
+
+                    var upload_log = {};
+
+                    function do_send(url) {
+                        console.log('Sending ' + upload_log.end + '/' + file.size);
+                        post_with_blob(
+                            url,
+                            {
+                                access_token: access_token,
+                                upload_phase: 'transfer',
+                                start_offset: upload_log.start,
+                                upload_session_id: upload_log.sess,
+                                video_file_chunk: file.slice(upload_log.start, upload_log.end + 1)  // a Blob object, end is exlusive so +1
+                            },
+                            function (resp) {
+                                upload_log.start = resp.start_offset;
+                                upload_log.end = resp.end_offset;
+
+
+                                if (upload_log.start !== upload_log.end) {
+                                    do_send();
+                                } else {
+                                    // start == end, so send finish. finalize
+                                    console.log('Finishing transmission');
+                                    post_with_blob(
+                                        url,
+                                        {
+                                            access_token: access_token,
+                                            upload_phase: 'finish',
+                                            upload_session_id: upload_log.sess,
+                                            description: options.message,
+                                            published: !options.delay,
+                                            scheduled_publish_time: Math.floor((options.delay || 0) / 1000)
+                                        },
+                                        function (resp) {
+                                            if (!resp.success) {
+                                                reject(resp);
+                                            } else {
+                                                console.log('Success, check image status ' + upload_log.sess);
+                                                resolve(upload_log.vid); // good , return video id
+                                            }
+                                        },
+                                        function (xhr) {
+                                            reject(xhr.responseJSON);
+                                        });
+                                }
+                            },
+                            function (xhr) {
+                                reject(xhr.responseJSON);
+                            })
+                    }
+
+
+                    post_with_blob(
+                        url,
+                        {
+                            access_token: access_token,
+                            upload_phase: 'start',
+                            file_size: file.size
+                        },
+                        function (resp) {
+                            upload_log.sess = resp.upload_session_id;
+                            upload_log.vid = resp.video_id;
+                            upload_log.start = resp.start_offset;
+                            upload_log.end = resp.end_offset;
+
+
+                            do_send(url);
+                        },
+                        function (xhr) {
+                            reject(xhr.responseJSON);
+                        }
+                    )
+                });
+            },
+
+            fb_api_message: function (page_id, options, access_token) {
+
+                return new Promise(function (resolve, reject) {
+                    FB.api(
+                        "/" + page_id + "/feed",
+                        "POST",
+                        {
+                            access_token: access_token,
+                            message: options.message,
+                            published: !options.delay,
+                            scheduled_publish_time: Math.floor((options.delay || 0) / 1000)
+                        },
+                        function (response) {
+                            if (response && !response.error) {
+                                /* handle the result */
+                                resolve();
+                            }
+                            else {
+                                reject(response.error);
+                            }
+                        }
+                    );
+                })
+            },
+
+
+            set_progress: function (current, max) {
+                if (current === undefined) {
+                    // delete progress bar and hide
+                    this.panel.find('.progress-bar-cover').hide();
+                } else if (max === 0) {
+                    this.panel.find('.progress-bar-cover').show().find('.progress-bar').progressbar({
+                        value: false // infinite waiting
+                    });
+                } else {
+                    this.panel.find('.progress-bar-cover').show().find('.progress-bar').progressbar({
+                        value: current,
+                        max: max
+                    });
+                }
+            },
+
+
+            clear_all: function () {
+                this.package = {};
+                this.panel.find('textarea,input').val('').change();
+            }
+        };
+
+
+        function errorHandler(e) {
+            console.error(e)
+            if (e === "AuthException") {
+                tokenMachine.forceLogin();
+            }
+            else {
+                console.log(e)
+            }
+        }
+
+        $(function () {
+            FB.init({
+                appId: '135046373960941',
+                status: true,
+                cookie: true,
+                xfbml: true,
+                version: 'v2.11'
+            });
+            FB.AppEvents.logPageView();
+            tokenMachine.init();
+
+
+            console.log("FBinitiated");
+            tokenMachine.getToken(renderMachine.init.bind(renderMachine))
+        });
+    </script>
+</head>
+<body>
+<div class="overlay">
+    <div id="login_button">
+        <fb:login-button
+                scope="email, publish_actions, manage_pages,pages_manage_cta,publish_pages,pages_show_list,read_insights"
+                onlogin="tokenMachine.login()">
+        </fb:login-button>
+    </div>
+</div>
+
+<div id="container"></div>
+
+
+<template id="post_template">
+    <div class="post">
+        <div class="title"></div>
+        <div class="insight"></div>
+        <div class="msg"></div>
+        <div class="pic"></div>
+    </div>
+</template>
+
+
+<template id="publish_module">
+    <div class="progress-bar-cover">
+        <div class="progress-bar"></div>
+    </div>
+    <textarea class="message-input" name="message" placeholder="Write your message here"></textarea>
+    <!-- Build the input as a button, the icon is from FontAwesome, the input itself is
+     put to 0 size so it looks hidden but still exists (fully hidden input won't function).-->
+    <div class="input-button-group">
+        <input type="file" accept="image/*;video/*" class="no-size" name="iv_upload" multiple="multiple">
+        <button class="image-button"><i class="fa fa-image"></i></button>
+    </div>
+    <!--
+   <div class="input-button-group">
+       <input type="file" accept="video/*" class="no-size" name="video_upload">
+       <button class="video-button"><i class="fab fa-youtube"></i></button>
+   </div>-->
+    <div class="input-button-group">
+        <input type="text" name="delay_date" class="no-size">
+        <button class="date-picker"><i class="far fa-calendar-alt"></i><span></span></button>
+    </div>
+    <button class="post-button">Post</button>
+</template>
+
+
+</body>
+</html>

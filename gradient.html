@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <style>
+        #test{
+            height: 200px;
+            background-image: url("https://tpc.googlesyndication.com/simgad/14553437832346711238");
+            background-repeat: no-repeat;
+        }
+        #gradient{
+            width: 100%;
+            height: 150px;
+            z-index: 99998;
+            position: fixed;
+            left: 0;
+            top: 0;
+            display: flex;
+            background-image: linear-gradient(to right, rgba(255, 255, 255, 1), rgba(255, 255, 255, 0));
+        }
+        #hover{
+            position: fixed;
+            height: 100px;
+            width: 100%;
+            z-index: 998;
+            top: 0;
+            left: 0;
+            display: flex;
+            background-image: linear-gradient(to bottom, rgba(255, 255, 255, 1), rgba(255, 255, 255, 0));
+        }
+        #a{
+            z-index: 99999;
+        }
+    </style>
+</head>
+<body>
+<div>
+    <div id="test"></div>
+    <div id="gradient"><p id="a">ahaiewbdiubaekndcdlcmroiincfiuore</p></div>
+</div>
+</body>
+</html>

@@ -2,12 +2,12 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="aafd03ee-5b77-48b9-b668-cd070aa118ad" name="Default" comment="">
-      <change beforePath="" afterPath="$PROJECT_DIR$/Feb20.html" />
-      <change beforePath="" afterPath="$PROJECT_DIR$/Feb21.html" />
+      <change beforePath="" afterPath="$PROJECT_DIR$/AutoDis.html" />
+      <change beforePath="" afterPath="$PROJECT_DIR$/Feb22.html" />
+      <change beforePath="" afterPath="$PROJECT_DIR$/gradient.html" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
-      <change beforePath="$PROJECT_DIR$/Feb7.html" afterPath="$PROJECT_DIR$/Feb7.html" />
+      <change beforePath="$PROJECT_DIR$/form.html" afterPath="$PROJECT_DIR$/form.html" />
       <change beforePath="$PROJECT_DIR$/style.css" afterPath="$PROJECT_DIR$/style.css" />
-      <change beforePath="$PROJECT_DIR$/tester.html" afterPath="$PROJECT_DIR$/tester.html" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="TRACKING_ENABLED" value="true" />
@@ -21,58 +21,37 @@
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file leaf-file-name="manage.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/manage.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="0">
-              <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="settings.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/MF/settings.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="0">
-              <caret line="0" column="3" lean-forward="false" selection-start-line="0" selection-start-column="3" selection-end-line="0" selection-end-column="3" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
       <file leaf-file-name="form.html" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/form.html">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="3585">
-              <caret line="239" column="0" lean-forward="false" selection-start-line="239" selection-start-column="0" selection-end-line="259" selection-end-column="13" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="Feb4.html" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/Feb4.html">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="255">
-              <caret line="23" column="10" lean-forward="true" selection-start-line="23" selection-start-column="10" selection-end-line="23" selection-end-column="10" />
+            <state relative-caret-position="323">
+              <caret line="37" column="22" lean-forward="false" selection-start-line="37" selection-start-column="8" selection-end-line="37" selection-end-column="22" />
               <folding>
-                <element signature="n#div#0;n#body#0;n#html#0;n#!!top" expanded="false" />
-                <element signature="n#template#0;n#body#0;n#html#0;n#!!top" expanded="false" />
-                <marker date="1517908571000" expanded="true" signature="10858:10874" ph="..." />
+                <marker date="1519288967000" expanded="true" signature="7519:7535" ph="..." />
+                <marker date="1519288967000" expanded="true" signature="9499:9586" ph="..." />
               </folding>
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="Feb7.html" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/Feb7.html">
+      <file leaf-file-name="New login.html" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/New login.html">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="185">
-              <caret line="301" column="18" lean-forward="false" selection-start-line="301" selection-start-column="15" selection-end-line="301" selection-end-column="18" />
+            <state relative-caret-position="60">
+              <caret line="4" column="34" lean-forward="true" selection-start-line="4" selection-start-column="34" selection-end-line="4" selection-end-column="34" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="fbl.html" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/fbl.html">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="3225">
+              <caret line="215" column="27" lean-forward="true" selection-start-line="215" selection-start-column="27" selection-end-line="215" selection-end-column="27" />
               <folding>
-                <element signature="n#style#0;n#head#0;n#html#0;n#!!top" expanded="false" />
-                <marker date="1519099274000" expanded="true" signature="13136:13152" ph="..." />
+                <marker date="1517789666000" expanded="true" signature="6614:6630" ph="..." />
+                <marker date="1517789666000" expanded="true" signature="13853:13940" ph="..." />
               </folding>
             </state>
           </provider>
@@ -81,8 +60,8 @@
       <file leaf-file-name="Feb20.html" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/Feb20.html">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="422">
-              <caret line="384" column="57" lean-forward="true" selection-start-line="0" selection-start-column="0" selection-end-line="765" selection-end-column="0" />
+            <state relative-caret-position="92">
+              <caret line="362" column="19" lean-forward="true" selection-start-line="362" selection-start-column="19" selection-end-line="362" selection-end-column="19" />
               <folding>
                 <element signature="e#5620#13423#0" expanded="false" />
                 <element signature="e#6034#7238#0" expanded="false" />
@@ -106,22 +85,13 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="Feb21.html" pinned="false" current-in-tab="true">
+      <file leaf-file-name="Feb21.html" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/Feb21.html">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="628">
-              <caret line="170" column="0" lean-forward="true" selection-start-line="65" selection-start-column="3" selection-end-line="170" selection-end-column="0" />
+            <state relative-caret-position="369">
+              <caret line="361" column="0" lean-forward="false" selection-start-line="361" selection-start-column="0" selection-end-line="709" selection-end-column="0" />
               <folding>
-                <element signature="e#2875#3268#0" expanded="false" />
-                <element signature="e#3309#3394#0" expanded="false" />
-                <element signature="e#3480#3562#0" expanded="false" />
-                <element signature="e#3596#3717#0" expanded="false" />
-                <element signature="e#3752#3833#0" expanded="false" />
-                <element signature="e#3886#4232#0" expanded="false" />
-                <element signature="e#4267#4449#0" expanded="false" />
-                <element signature="e#4484#5217#0" expanded="false" />
-                <element signature="e#5247#5589#0" expanded="false" />
-                <element signature="e#5620#13423#0" expanded="false" />
+                <element signature="n#head#0;n#html#0;n#!!top" expanded="false" />
                 <element signature="e#6034#7238#0" expanded="false" />
                 <element signature="e#7285#7728#0" expanded="false" />
                 <element signature="e#7776#8488#0" expanded="false" />
@@ -134,33 +104,6 @@
                 <element signature="e#22348#22987#0" expanded="false" />
                 <element signature="e#23058#26513#0" expanded="false" />
                 <element signature="e#26581#27395#0" expanded="false" />
-                <marker date="1519191864000" expanded="true" signature="11385:11401" ph="..." />
-                <marker date="1519191864000" expanded="true" signature="11680:11696" ph="..." />
-                <marker date="1519191864000" expanded="true" signature="11880:11896" ph="..." />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="Feb6.html" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/Feb6.html">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="324">
-              <caret line="502" column="78" lean-forward="true" selection-start-line="502" selection-start-column="78" selection-end-line="502" selection-end-column="78" />
-              <folding>
-                <marker date="1517917625000" expanded="true" signature="11954:11970" ph="..." />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="tester.html" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/tester.html">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="225">
-              <caret line="15" column="27" lean-forward="true" selection-start-line="15" selection-start-column="27" selection-end-line="15" selection-end-column="27" />
-              <folding>
-                <element signature="n#style#0;n#div#0;n#body#0;n#html#0;n#!!top" expanded="true" />
               </folding>
             </state>
           </provider>
@@ -169,9 +112,52 @@
       <file leaf-file-name="style.css" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/style.css">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-7">
-              <caret line="0" column="10" lean-forward="true" selection-start-line="0" selection-start-column="10" selection-end-line="0" selection-end-column="10" />
+            <state relative-caret-position="123">
+              <caret line="48" column="19" lean-forward="true" selection-start-line="48" selection-start-column="19" selection-end-line="48" selection-end-column="19" />
               <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="Feb22.html" pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/Feb22.html">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="-2414">
+              <caret line="8" column="87" lean-forward="true" selection-start-line="8" selection-start-column="87" selection-end-line="8" selection-end-column="87" />
+              <folding>
+                <element signature="e#15347#15528#0" expanded="false" />
+                <element signature="e#15576#15725#0" expanded="false" />
+                <element signature="e#15768#15819#0" expanded="false" />
+                <element signature="e#25756#26575#0" expanded="false" />
+                <element signature="e#26651#30458#0" expanded="false" />
+                <element signature="e#30531#31457#0" expanded="false" />
+                <marker date="1519368824000" expanded="true" signature="6335:6347" ph="..." />
+                <marker date="1519368824000" expanded="true" signature="13361:13377" ph="..." />
+                <marker date="1519368824000" expanded="true" signature="13780:13796" ph="..." />
+                <marker date="1519368824000" expanded="true" signature="13991:14007" ph="..." />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="gradient.html" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/gradient.html">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="135">
+              <caret line="9" column="41" lean-forward="true" selection-start-line="9" selection-start-column="41" selection-end-line="9" selection-end-column="41" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="tester.html" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/tester.html">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="0">
+              <caret line="0" column="15" lean-forward="true" selection-start-line="0" selection-start-column="15" selection-end-line="0" selection-end-column="15" />
+              <folding>
+                <element signature="n#style#0;n#div#0;n#body#0;n#html#0;n#!!top" expanded="true" />
+              </folding>
             </state>
           </provider>
         </entry>
@@ -188,24 +174,6 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>feed</find>
-      <find>posts</find>
-      <find>.pic</find>
-      <find>access</find>
-      <find>overlay</find>
-      <find>null</find>
-      <find>localSto</find>
-      <find>init</find>
-      <find>post</find>
-      <find>PAGE_TOKENS[PAGE_ID</find>
-      <find>PAGE_TOKENS</find>
-      <find>image</find>
-      <find>tokenMachine.page_tokens[this.page_id]</find>
-      <find>statusChangeCallback</find>
-      <find>login</find>
-      <find>fb_api_video</find>
-      <find>page_tokens</find>
-      <find>checkValid</find>
       <find>response.error</find>
       <find>then</find>
       <find>error_handling</find>
@@ -215,9 +183,27 @@
       <find>class</find>
       <find>img</find>
       <find>src</find>
-      <find>w2ui</find>
       <find>pst</find>
+      <find>storage_name</find>
+      <find>loadToken</find>
+      <find>error</find>
+      <find>statusChangeCallback</find>
+      <find>if ()</find>
+      <find>Status</find>
+      <find>render</find>
+      <find>login</find>
+      <find>_</find>
+      <find>tokenRequester</find>
+      <find>getP</find>
+      <find>text</find>
+      <find>top</find>
+      <find>w2ui</find>
+      <find>w2ui[</find>
       <find>pstyle</find>
+      <find>topBar</find>
+      <find>click</find>
+      <find>p</find>
+      <find>.progress-bar-cover</find>
     </findStrings>
   </component>
   <component name="Git.Settings">
@@ -226,21 +212,25 @@
   <component name="IdeDocumentHistory">
     <option name="CHANGED_PATHS">
       <list>
-        <option value="$PROJECT_DIR$/New login.html" />
         <option value="$PROJECT_DIR$/read_file.html" />
         <option value="$PROJECT_DIR$/login.html" />
         <option value="$PROJECT_DIR$/fbl.html" />
-        <option value="$PROJECT_DIR$/form.html" />
         <option value="$PROJECT_DIR$/Feb5.html" />
         <option value="$PROJECT_DIR$/Feb4.html" />
         <option value="$PROJECT_DIR$/Feb6.html" />
         <option value="$PROJECT_DIR$/MF/Feb7.html" />
         <option value="$PROJECT_DIR$/manage.py" />
         <option value="$PROJECT_DIR$/Feb7.html" />
-        <option value="$PROJECT_DIR$/style.css" />
         <option value="$PROJECT_DIR$/tester.html" />
         <option value="$PROJECT_DIR$/Feb20.html" />
         <option value="$PROJECT_DIR$/Feb21.html" />
+        <option value="$PROJECT_DIR$/MF/Feb22.html" />
+        <option value="$PROJECT_DIR$/New login.html" />
+        <option value="$PROJECT_DIR$/form.html" />
+        <option value="$PROJECT_DIR$/AutoDis.html" />
+        <option value="$PROJECT_DIR$/gradient.html" />
+        <option value="$PROJECT_DIR$/Feb22.html" />
+        <option value="$PROJECT_DIR$/style.css" />
       </list>
     </option>
   </component>
@@ -257,9 +247,9 @@
     <sorting>DEFINITION_ORDER</sorting>
   </component>
   <component name="ProjectFrameBounds" fullScreen="true">
-    <option name="x" value="108" />
+    <option name="x" value="66" />
     <option name="y" value="23" />
-    <option name="width" value="1680" />
+    <option name="width" value="1874" />
     <option name="height" value="1027" />
   </component>
   <component name="ProjectView">
@@ -284,6 +274,11 @@
             <path>
               <item name="page" type="b2602c69:ProjectViewProjectNode" />
               <item name="page" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="page" type="b2602c69:ProjectViewProjectNode" />
+              <item name="page" type="462c0819:PsiDirectoryNode" />
+              <item name="MF" type="462c0819:PsiDirectoryNode" />
             </path>
           </expand>
           <select />
@@ -317,7 +312,8 @@
       </list>
     </option>
   </component>
-  <component name="RunManager" selected="Python.manage">
+  <component name="RunManager" selected="JavaScript Debug.gradient.html">
+    <configuration name="gradient.html" type="JavascriptDebugType" factoryName="JavaScript Debug" temporary="true" nameIsGenerated="true" uri="http://localhost:63342/page/gradient.html" />
     <configuration name="login.html" type="JavascriptDebugType" factoryName="JavaScript Debug" temporary="true" nameIsGenerated="true" uri="http://localhost:63343/MF/login.html" />
     <configuration name="manage" type="PythonConfigurationType" factoryName="Python" temporary="true">
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -338,13 +334,15 @@
       <option name="EMULATE_TERMINAL" value="false" />
       <option name="MODULE_MODE" value="false" />
     </configuration>
-    <list size="2">
+    <list size="3">
       <item index="0" class="java.lang.String" itemvalue="JavaScript Debug.login.html" />
       <item index="1" class="java.lang.String" itemvalue="Python.manage" />
+      <item index="2" class="java.lang.String" itemvalue="JavaScript Debug.gradient.html" />
     </list>
     <recent_temporary>
-      <list size="1">
-        <item index="0" class="java.lang.String" itemvalue="Python.manage" />
+      <list size="2">
+        <item index="0" class="java.lang.String" itemvalue="JavaScript Debug.gradient.html" />
+        <item index="1" class="java.lang.String" itemvalue="Python.manage" />
       </list>
     </recent_temporary>
   </component>
@@ -404,33 +402,11 @@
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
-      <option name="time" value="23" />
+      <option name="time" value="25" />
     </breakpoint-manager>
     <watches-manager />
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/MF/__init__.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="0">
-          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/MF/settings.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="0">
-          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/login.html">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="591">
-          <caret line="59" column="41" lean-forward="false" selection-start-line="59" selection-start-column="41" selection-end-line="59" selection-end-column="41" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/MF/wsgi.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="210">
@@ -660,25 +636,10 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/New login.html" />
-    <entry file="file://$PROJECT_DIR$/login.html">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="523">
-          <caret line="96" column="70" lean-forward="true" selection-start-line="96" selection-start-column="70" selection-end-line="96" selection-end-column="70" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/read_file.html">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="300">
           <caret line="20" column="17" lean-forward="true" selection-start-line="20" selection-start-column="17" selection-end-line="20" selection-end-column="17" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/fbl.html">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="483">
-          <caret line="225" column="37" lean-forward="true" selection-start-line="0" selection-start-column="0" selection-end-line="528" selection-end-column="0" />
         </state>
       </provider>
     </entry>
@@ -697,14 +658,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/manage.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="0">
-          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/MF/settings.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="0">
@@ -714,32 +667,6 @@
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/Feb5.html" />
-    <entry file="file://$PROJECT_DIR$/form.html">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="3585">
-          <caret line="239" column="0" lean-forward="false" selection-start-line="239" selection-start-column="0" selection-end-line="259" selection-end-column="13" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/style.css">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-7">
-          <caret line="0" column="10" lean-forward="true" selection-start-line="0" selection-start-column="10" selection-end-line="0" selection-end-column="10" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/tester.html">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="225">
-          <caret line="15" column="27" lean-forward="true" selection-start-line="15" selection-start-column="27" selection-end-line="15" selection-end-column="27" />
-          <folding>
-            <element signature="n#style#0;n#div#0;n#body#0;n#html#0;n#!!top" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/Feb7.html">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="185">
@@ -773,10 +700,59 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/login.html">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-1805">
+          <caret line="96" column="70" lean-forward="true" selection-start-line="96" selection-start-column="70" selection-end-line="96" selection-end-column="70" />
+          <folding>
+            <marker date="1517789666000" expanded="true" signature="6357:6373" ph="..." />
+            <marker date="1517789666000" expanded="true" signature="8329:8416" ph="..." />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/manage.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="0">
+          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/fbl.html">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="3225">
+          <caret line="215" column="27" lean-forward="true" selection-start-line="215" selection-start-column="27" selection-end-line="215" selection-end-column="27" />
+          <folding>
+            <marker date="1517789666000" expanded="true" signature="6614:6630" ph="..." />
+            <marker date="1517789666000" expanded="true" signature="13853:13940" ph="..." />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/form.html">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="323">
+          <caret line="37" column="22" lean-forward="false" selection-start-line="37" selection-start-column="8" selection-end-line="37" selection-end-column="22" />
+          <folding>
+            <marker date="1519288967000" expanded="true" signature="7519:7535" ph="..." />
+            <marker date="1519288967000" expanded="true" signature="9499:9586" ph="..." />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/New login.html">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="60">
+          <caret line="4" column="34" lean-forward="true" selection-start-line="4" selection-start-column="34" selection-end-line="4" selection-end-column="34" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/Feb20.html">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="422">
-          <caret line="384" column="57" lean-forward="true" selection-start-line="0" selection-start-column="0" selection-end-line="765" selection-end-column="0" />
+        <state relative-caret-position="92">
+          <caret line="362" column="19" lean-forward="true" selection-start-line="362" selection-start-column="19" selection-end-line="362" selection-end-column="19" />
           <folding>
             <element signature="e#5620#13423#0" expanded="false" />
             <element signature="e#6034#7238#0" expanded="false" />
@@ -799,21 +775,20 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/AutoDis.html">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="0">
+          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/Feb21.html">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="628">
-          <caret line="170" column="0" lean-forward="true" selection-start-line="65" selection-start-column="3" selection-end-line="170" selection-end-column="0" />
+        <state relative-caret-position="369">
+          <caret line="361" column="0" lean-forward="false" selection-start-line="361" selection-start-column="0" selection-end-line="709" selection-end-column="0" />
           <folding>
-            <element signature="e#2875#3268#0" expanded="false" />
-            <element signature="e#3309#3394#0" expanded="false" />
-            <element signature="e#3480#3562#0" expanded="false" />
-            <element signature="e#3596#3717#0" expanded="false" />
-            <element signature="e#3752#3833#0" expanded="false" />
-            <element signature="e#3886#4232#0" expanded="false" />
-            <element signature="e#4267#4449#0" expanded="false" />
-            <element signature="e#4484#5217#0" expanded="false" />
-            <element signature="e#5247#5589#0" expanded="false" />
-            <element signature="e#5620#13423#0" expanded="false" />
+            <element signature="n#head#0;n#html#0;n#!!top" expanded="false" />
             <element signature="e#6034#7238#0" expanded="false" />
             <element signature="e#7285#7728#0" expanded="false" />
             <element signature="e#7776#8488#0" expanded="false" />
@@ -826,9 +801,51 @@
             <element signature="e#22348#22987#0" expanded="false" />
             <element signature="e#23058#26513#0" expanded="false" />
             <element signature="e#26581#27395#0" expanded="false" />
-            <marker date="1519191864000" expanded="true" signature="11385:11401" ph="..." />
-            <marker date="1519191864000" expanded="true" signature="11680:11696" ph="..." />
-            <marker date="1519191864000" expanded="true" signature="11880:11896" ph="..." />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/tester.html">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="0">
+          <caret line="0" column="15" lean-forward="true" selection-start-line="0" selection-start-column="15" selection-end-line="0" selection-end-column="15" />
+          <folding>
+            <element signature="n#style#0;n#div#0;n#body#0;n#html#0;n#!!top" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/gradient.html">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="135">
+          <caret line="9" column="41" lean-forward="true" selection-start-line="9" selection-start-column="41" selection-end-line="9" selection-end-column="41" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/style.css">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="123">
+          <caret line="48" column="19" lean-forward="true" selection-start-line="48" selection-start-column="19" selection-end-line="48" selection-end-column="19" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Feb22.html">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-2414">
+          <caret line="8" column="87" lean-forward="true" selection-start-line="8" selection-start-column="87" selection-end-line="8" selection-end-column="87" />
+          <folding>
+            <element signature="e#15347#15528#0" expanded="false" />
+            <element signature="e#15576#15725#0" expanded="false" />
+            <element signature="e#15768#15819#0" expanded="false" />
+            <element signature="e#25756#26575#0" expanded="false" />
+            <element signature="e#26651#30458#0" expanded="false" />
+            <element signature="e#30531#31457#0" expanded="false" />
+            <marker date="1519368824000" expanded="true" signature="6335:6347" ph="..." />
+            <marker date="1519368824000" expanded="true" signature="13361:13377" ph="..." />
+            <marker date="1519368824000" expanded="true" signature="13780:13796" ph="..." />
+            <marker date="1519368824000" expanded="true" signature="13991:14007" ph="..." />
           </folding>
         </state>
       </provider>

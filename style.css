@@ -1,3 +1,10 @@
+html *
+{
+    font-family: "Lucida Sans Unicode", "Lucida Grande", sans-serif;
+    margin: 0px;
+
+}
+
 .overlay {
     width: 100%;
     height: 100%;
@@ -20,13 +27,13 @@ html, body, #container {
 
 .post {
     width: 600px;
-    margin: 30px auto;
+    margin: 10px auto;
     background: #EEEEEE;
 }
 
 .scheduled_post {
     width: 600px;
-    margin: 30px auto;
+    margin: 10px auto;
     background: #EEEEEE;
     color: grey
 }
@@ -34,22 +41,30 @@ html, body, #container {
 .title {
     background: #CCCCCC;
     font-size: large;
+    padding: 0 5px ;
 }
 
 .insight {
     background: #EEEEEE;
-    color: red;
+    color: #888888;
     font-size: small;
-    alignment: right;
+    text-align: right;
+    margin-right: 20px;
 }
 
 .pic {
     background: #EEEEEE;
 }
 
+.msg{
+    padding: 0 5px ;
+    font-family: arial;
+    font-size: 14px;
+}
+
 #publish_box {
-    height: 160px;
-    border: 2px dashed orange;
+    height: 150px;
+    /*border: 2px dashed orange;*/
     padding: 0 5px;
 }
 
@@ -105,5 +120,36 @@ html, body, #container {
 .post_img {
     width: 100%;
     align: 'middle';
-    margin: 100px;
+    margin: 50px;
+}
+
+#topBarBG {
+    margin: 0px;
+    padding: 0px;
+    background-color: #3b5998;
+    background-size: cover;
+    height: 150px;
+    background-position: 0 -50px;
+}
+
+#gradient{
+    width: 100%;
+    height: 150px;
+    z-index: 99998;
+    position: fixed;
+    left: 0;
+    top: 0;
+    display: flex;
+    background-image: linear-gradient(to right, rgba(255, 255, 255, 1) 0%, rgba(255, 255, 255, 0));
+}
+
+#welcome{
+    color: #3b5998;
+    z-index: 99999;
+    margin: 20px;
+}
+
+#revokeButton{
+     z-index: 99999;
+     margin: 20px;
 }
