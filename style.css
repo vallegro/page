@@ -54,6 +54,14 @@ html, body, #container {
     margin-right: 20px;
 }
 
+.schedule {
+    /*background: #EEEEEE;*/
+    color: #888888;
+    font-size: 14px;
+    text-align: right;
+    margin-right: 20px;
+}
+
 .pic {
     /*background: #EEEEEE;*/
 }
@@ -154,4 +162,10 @@ html, body, #container {
 #revokeButton{
      z-index: 99999;
      margin: 20px;
+}
+
+.fb-login-button{
+    position: absolute;
+    top: 50%;
+    left: 50%;
 }

@@ -7,7 +7,7 @@
     <link rel="stylesheet" type="text/css" href="http://w2ui.com/src/w2ui-1.5.rc1.min.css"/>
     <script src="http://w2ui.com/src/w2ui-1.5.rc1.min.js"></script>
     <script defer src="https://use.fontawesome.com/releases/v5.0.4/js/all.js"></script>
-    <script src="https://connect.facebook.net/ja_JP/sdk.js#xfbml=1&version=v2.11"></script>
+    <script src="https://connect.facebook.net/ja_JP/sdk.js#xfbml=1&version=v2.12"></script>
     <link rel="stylesheet" href="./style.css">
     <link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/themes/base/jquery-ui.css">
     <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
@@ -18,13 +18,17 @@
 
 
     <script>
+
+
         var tokenMachine = {
+            //This module manages tokens: it get page tokens from FB and provide tokens to callback functions when needed.
+            // Page tokens are refreshed automatically every 10 minutes
             tokenRequestors: [],
             pageTokenRequestors: [],
             accessToken: null,
             pageTokens: {},
             lock: null,
-
+            //initiate tokenMachine
             init: function () {
                 FB.getLoginStatus(function (resp) {
                     if (resp.status === "connected") {
@@ -38,7 +42,7 @@
             }
             ,
 
-
+            //load page tokens from FB
             loadPageTokens: function () {
                 var readPages = new Promise(function (resolve, reject) {
                     FB.api("/me/accounts",
@@ -49,7 +53,7 @@
                                 resolve()
                             }
                             else {
-                                reject(response.error)
+                                reject([response.error, "A"]);
                             }
                         })
                     );
@@ -59,6 +63,14 @@
             }
             ,
 
+            //periodically freshing page token
+            pageTokenFreshing: function(){
+                tokenMachine.loadPageTokens();
+                setTimeout(tokenMachine.pageTokenFreshing, 10*60000);
+            }
+            ,
+
+            //called when login button is clicked
             login: function () {
                 FB.getLoginStatus(function (response) {
                     tokenMachine.statusChangeCallback(response);
@@ -66,6 +78,7 @@
             }
             ,
 
+            //change the page when logged in successfully
             statusChangeCallback: function (response) {
                 console.log('statusChangeCallback');
                 console.log(response);
@@ -79,7 +92,7 @@
             }
             ,
 
-
+            //send account token to callback
             getToken: function (callback) {
                 if (this.lock === null) {
                     if (this.accessToken != null) {
@@ -96,6 +109,7 @@
             }
             ,
 
+            //send page token to callback
             getPageToken: function (callback, page_id) {
                 if (this.lock === null) {
                     if (this.pageTokens[page_id] != null) {
@@ -113,7 +127,7 @@
             }
             ,
 
-
+            //force a login as account token expired
             forceLogin: function () {
                 $('.overlay').show();
                 $('#login_button').show();
@@ -140,6 +154,7 @@
             }
             ,
 
+            //logout the session
             revoke: function () {
                 this.accessToken = null;
                 this.pageTokens = {};
@@ -154,7 +169,9 @@
             }
         }
 
+
         var renderMachine = {
+            //this module renders the page
             init: function (access_token) {
                 console.log("rendering");
                 this.init_op_ui();
@@ -164,7 +181,10 @@
                 $('.overlay').hide()
             },
             page_id: null,
+            timeline:null,
+            scheduled_timeline: null,
 
+            //initiation using w2ui
             init_op_ui: function () {
                 var pstyle = 'background-color: #F5F6F7; border: 1px solid #dfdfdf; padding: 5px;';
                 $('#container').w2layout({
@@ -173,7 +193,7 @@
                         {
                             type: 'top',
                             size: 150,
-                            resizable: true,
+                            resizable: false,
                             style: pstyle,
                             content: '<div id="topBarBG" style="height: 100%"></div><div id="gradient"><p id="welcome"></p><p id="revokeButton" ></p></div>'
                         },
@@ -190,15 +210,14 @@
                             size: '80%',
                             resizable: false,
                             style: pstyle,
-                            content: '<div id="scheduled_timeline"> </div> <div id="timeline"> </div>'
+                            content: "",
                         },
                         {type: 'right', size: 200, resizable: true, style: pstyle},
-                        // {type: 'bottom', size: 50, resizable: true, style: pstyle, content: 'bottom'}
                     ]
                 });
             },
 
-
+            //add welcome message and logout button
             update_top: function (access_token) {
                 FB.api("/me", {'access_token': access_token},
                     response => {
@@ -211,8 +230,8 @@
 
 
             add_pagebar: function (access_token) {
-                // w2ui['layout'].el('').append("you are managing following pages:" + response.data.map(d => d.name).join(" ,"));]
                 FB.api('/me/accounts', {'access_token': access_token}, response => {
+                    if(!response.error) {
                         w2ui.sidebar.add(
                             response.data.map(d => ({
                                 id: "page_" + d.id,
@@ -225,8 +244,14 @@
                                 }
                             })));
                     }
+                    else{
+                        errorHandler(response)
+                    }
+                    }
                 );
             },
+
+
 
 
             show_pages: function (page_id) {
@@ -234,67 +259,79 @@
                 //FB.api('/'+page_id+'/posts', response=>console.log(response));
                 //localStorage.setItem("PAGE_ID", PAGE_ID);
 
-                return new Promise(function (resolve, reject) {
-                    this.page_id = page_id;
-                    var request = '/' + this.page_id + '?fields=cover'
-                    tokenMachine.getPageToken(
-                        function (pageToken) {
-                            FB.api(request, {access_token: pageToken}, (function (response) {
-                                console.log(response);
-                                if(response.error){
-                                    console.log(reject);
-                                    reject(response.error);
-                                }
-                                else {
-                                    this.set_cover(response)
-                                }
-                            }).bind(renderMachine));
-                        }, renderMachine.page_id
-                    );
+                var promises = [];
+                renderMachine.timeline = $("<div id=\"timeline\"> </div>");
+                renderMachine.scheduled_timeline = $("<div id=\"scheduled_timeline\"> </div>");
+                $(w2ui.layout.el("preview")).empty().append(renderMachine.scheduled_timeline).append(renderMachine.timeline);
 
 
 
-                    $('#scheduled_timeline').html("");
-                    var request = '/' + this.page_id + '/promotable_posts?fields=story, message, name,full_picture&is_published=false'
+                promises.push(
+                    new Promise(function (resolve, reject) {
+                        renderMachine.page_id = page_id;
+                        var request = '/' + renderMachine.page_id + '?fields=cover'
+                        tokenMachine.getPageToken(
+                            function (pageToken) {
+                                FB.api(request, {access_token: pageToken}, (function (response) {
+                                    console.log(response);
+                                    if (response.error) {
+                                        reject([response, "P"]);
+                                    }
+                                    else {
+                                        renderMachine.set_cover(response);
+                                    }
+                                }));
+                            }, renderMachine.page_id
+                        );
+                    })
+                );
 
-                    tokenMachine.getPageToken(
-                        function (pageToken) {
-                            FB.api(request, {access_token: pageToken}, (function (response) {
-                                console.log(response);
-                                if(response.error){
-                                    reject(response.error);
-                                }
-                                else {
-                                    this.add_posts(response, '#scheduled_timeline')
-                                }
-                            }).bind(renderMachine));
-                        }, renderMachine.page_id
-                    );
+                promises.push(
+                    new Promise(function (resolve, reject) {
+                        var request = '/' + renderMachine.page_id + '/promotable_posts?fields=story, message, name, attachments, scheduled_publish_time&is_published=false'
+                        var tl = renderMachine.scheduled_timeline;
+                        tokenMachine.getPageToken(
+                            function (pageToken) {
+                                FB.api(request, {access_token: pageToken}, (function (response) {
+                                    console.log(response);
+                                    if (response.error) {
+                                        reject([response, "P"]);
+                                    }
+                                    else {
+                                        renderMachine.add_posts(response, tl)
+                                    }
+                                }));
+                            }, renderMachine.page_id
+                        );
+                    })
+                );
 
-
-                    $('#timeline').html("");
-                    var request = '/' + this.page_id + '/posts?fields=story, message, name, attachments'
-                    tokenMachine.getPageToken(
-                        function (pageToken) {
-                            FB.api(request, {access_token: pageToken}, (function (response) {
-                                console.log(response);
-                                if(response.error){
-                                    reject(response.error);
-                                }
-                                else {
-                                    this.add_posts(response, '#timeline')
-                                }
-                            }).bind(renderMachine));
-                        }, renderMachine.page_id
-                    );
+                promises.push(
+                    new Promise(function (resolve, reject) {
+                        var request = '/' + renderMachine.page_id + '/posts?fields=story, message, name, attachments'
+                        var tl = renderMachine.timeline
+                        tokenMachine.getPageToken(
+                            function (pageToken) {
+                                FB.api(request, {access_token: pageToken}, (function (response) {
+                                    console.log(response);
+                                    if(response.error){
+                                        reject([response, "P"]);
+                                    }
+                                    else {
+                                        renderMachine.add_posts(response, tl);
+                                    }
+                                }));
+                            }, renderMachine.page_id
+                        );
 
 
                     //$('#postbox').html('<div id="new post"><input id="post" type="text"><button onclick="publish();">publish</button>');
-                    $(w2ui.layout.el('right')).html("");
+                    //$(w2ui.layout.el('right')).html("");
                     //create_upload_button($(w2ui.layout.el('right')));
+                    })
+                );
 
-                    resolve();
-                }.bind(renderMachine));
+                return Promise.all(promises)
             },
 
             set_cover: function (response) {
@@ -308,6 +345,11 @@
                 for (var post of response.data) {
                     //console.log(post.id);
                     //console.log(post);
+                    if (timeline === renderMachine.scheduled_timeline){
+                        if(!post.scheduled_publish_time){
+                            continue;
+                        }
+                    }
                     var x = $($('#post_template').html());
                     var title = ""
                     if (post.story & post.name) {
@@ -346,16 +388,21 @@
                         }
                         x.find('.pic').html(att_html);
                     } else
-                        x.find('.pic').hide;
+                        x.find('.pic').hide();
                     //FB.api('/'+post.id+'/insights/post_impressions', {access_token:PAGE_TOKENS[PAGE_ID]}, function (response) {x.find('.insight').html("Total impressions: "+response.data[0].values[0].value)});
                     //console.log(x);
                     this.get_insights(x, post);
                     console.log(timeline)
-                    if (timeline == '#scheduled_timeline') {
+                    if (timeline === renderMachine.scheduled_timeline) {
+
                         x.find('.title').text("Scheduled: "+x.find('.title').text());
+                        x.find('.schedule').text("To publish at: "+new Date(post.scheduled_publish_time*1000))
                         x.attr('class', 'scheduled_post');
                     }
-                    $(timeline).append(x);
+                    else{
+                        x.find('.schedule').hide();
+                    }
+                    timeline.append(x);
                 }
             },
 
@@ -378,7 +425,6 @@
                 tokenMachine.getToken(renderMachine.init.bind(renderMachine));
             },
 
-
             add_publish_window: function () {
                 var x = $($('#publish_module').html());
                 $("#publish_box").html(x);
@@ -396,6 +442,7 @@
             package: {},
             page_id: null,
             panel: null,
+            temp_posts: [],
             init: function () {
                 this.panel = $('#publish_box');
                 this.panel.find('.progress-bar-cover').hide();
@@ -447,6 +494,10 @@
             upload_package: function () {
                 console.log('uploading');
                 postModule.page_id = renderMachine.page_id; //todo get page id
+                if(!postModule.page_id){
+                    alert("Select a page to post!");
+                    return;
+                }
                 var iv = '';
                 if (this.package.iv_upload) {
                     for (var f of this.package.iv_upload) {
@@ -489,33 +540,73 @@
                 }
                 else if (iv === "images") {
                     tokenMachine.getPageToken(function (token) {
-                        var file = postModule.package.iv_upload[0];
-                        var delay = postModule.package.delay_date ? Date.parse(this.package.delay_date) : undefined;
-                        var message = postModule.package.message ? postModule.package.message: "";
-                        var page_id = postModule.page_id;
-                        postModule.fb_api_images(file, page_id, {'delay': delay, 'message': message}, token)
-                            .then(
-                                function () {
-                                    renderMachine.show_pages(page_id);
-                                    postModule.set_progress();
-                                    postModule.clear_all();
+                        if (postModule.package.iv_upload.length ==1){
+                            var file = postModule.package.iv_upload[0];
+                            var delay = postModule.package.delay_date ? Date.parse(this.package.delay_date) : undefined;
+                            var published = postModule.package.delay_date ? false : true;
+                            var message = postModule.package.message ? postModule.package.message : "";
+                            var page_id = postModule.page_id;
+                            postModule.fb_api_images(file, page_id, {'delay': delay, 'published':published, 'message': message}, token)
+                                .then(
+                                    function () {
+                                        renderMachine.show_pages(page_id);
+                                        postModule.set_progress();
+                                        postModule.clear_all();
                                     }
-                                    ,errorHandler
-                            );
+                                    , function(resp){
+                                        postModule.set_progress();
+                                        errorHandler(resp);
+                                    }
+                                );
+                        }
+                        else{
+                            var reqs=[];
+                            for(file of postModule.package.iv_upload){
+                                var published = false;
+                                var message = postModule.package.message ? postModule.package.message : "";
+                                var page_id = postModule.page_id;
+                                reqs.push(postModule.fb_api_images(file, page_id, {'delay': delay, 'message': message, 'published':published}, token))
+                            }
+                            Promise.all(reqs).then(
+                                function(resp){
+                                    resp.map(e=>postModule.temp_posts.push({"media_fbid":e.id}));
+
+                                    var delay = postModule.package.delay_date ? Date.parse(postModule.package.delay_date) : undefined;
+                                    var message = postModule.package.message;
+                                    var page_id = postModule.page_id;
+                                    var attached_media = postModule.temp_posts;
+                                    postModule.fb_api_message(page_id, {'delay': delay, 'message': message, 'attached_media':attached_media}, token)
+                                        .then(
+                                            function () {
+                                                renderMachine.show_pages(page_id);
+                                                postModule.set_progress();
+                                                postModule.clear_all();
+                                            }
+                                            , errorHandler
+                                        );
+                                }
+                                , function(resp){
+                                    postModule.set_progress();
+                                    errorHandler(resp);
+                                }
+                            )
+
+                        }
+
+
                     }, postModule.page_id);
                 }
                 else {
                     tokenMachine.getPageToken(function (token) {
-                        var delay = this.package.delay_date ? Date.parse(this.package.delay_date) : undefined;
-                        var message = this.package.message;
-                        var page_id = this.page_id;
-                        token = tokenMachine.getPageToken(page_id);
-                        this.fb_api_message(page_id, {'delay': delay, 'message': message}, token).then(function () {
+                        var delay = postModule.package.delay_date ? Date.parse(postModule.package.delay_date) : undefined;
+                        var message = postModule.package.message;
+                        var page_id = postModule.page_id;
+                        postModule.fb_api_message(page_id, {'delay': delay, 'message': message}, token).then(function () {
                             renderMachine.show_pages(page_id);
-                            this.set_progress();
-                            this.clear_all();
-                        }.bind(this), errorHandler);
-                    }.bind(this));
+                            postModule.set_progress();
+                            postModule.clear_all();
+                        }, errorHandler);
+                    }, postModule.page_id);
                 }
             },
 
@@ -523,7 +614,7 @@
             fb_api_video: function (file, page_id, options, access_token) {
                 return new Promise(function (resolve, reject) {
                     console.log('uploading', file);
-                    var url = 'https://graph-video.facebook.com/v2.11/' + page_id + '/videos';
+                    var url = 'https://graph-video.facebook.com/v2.12/' + page_id + '/videos';
 
                     var upload_log = {};
 
@@ -560,19 +651,19 @@
                                         },
                                         function (resp) {
                                             if (!resp.success) {
-                                                reject(resp);
+                                                reject([resp, "P"]);
                                             } else {
                                                 console.log('Success, check video status ' + upload_log.sess);
                                                 resolve(upload_log.vid); // good , return video id
                                             }
                                         },
                                         function (xhr) {
-                                            reject(xhr.responseJSON);
+                                            reject([xhr.responseJSON, "P"]);
                                         });
                                 }
                             },
                             function (xhr) {
-                                reject(xhr.responseJSON);
+                                reject([xhr.responseJSON, "P"]);
                             })
                     }
 
@@ -594,107 +685,36 @@
                             do_send(url);
                         },
                         function (xhr) {
-                            reject(xhr.responseJSON);
+                            reject([xhr.responseJSON, "P"]);
                         }
                     )
                 });
             },
 
-            /*
-                   fb_api_images: function (imgfiles, page_id, access_token) {
-                       return new Promise(function (resolve, reject) {
-                           //var page_id = PAGE_ID;
-                           //console.log(file);
-                           var url = 'https://graph.facebook.com/v2.11/' + page_id + '/photos';
 
-
-                           postModule.post_with_blob(url, {  //todo here postModule.post_with_blob should be used
-                               img: imgfiles[0],
-                               access_token: access_token,
-                               message: "aha"
-                           }, function (resp) {
-                               resolve(extract_the_media_id_from_resp);
-                           }, reject);
-                       });
-                   },
-            */
             fb_api_images: function (file, page_id, options, access_token) {
                 return new Promise(function (resolve, reject) {
                     console.log('uploading', file);
-                    var url = 'https://graph.facebook.com/v2.11/' + page_id + '/photos';
-
-                    var upload_log = {};
-
-                    function do_send(url) {
-                        console.log('Sending ' + upload_log.end + '/' + file.size);
-                        postModule.post_with_blob(
-                            url,
-                            {
-                                access_token: access_token,
-                                upload_phase: 'transfer',
-                                start_offset: upload_log.start,
-                                upload_session_id: upload_log.sess,
-                                video_file_chunk: file.slice(upload_log.start, upload_log.end + 1)  // a Blob object, end is exlusive so +1
-                            },
-                            function (resp) {
-                                upload_log.start = resp.start_offset;
-                                upload_log.end = resp.end_offset;
-
-
-                                if (upload_log.start !== upload_log.end) {
-                                    do_send();
-                                } else {
-                                    // start == end, so send finish. finalize
-                                    console.log('Finishing transmission');
-                                    postModule.post_with_blob(
-                                        url,
-                                        {
-                                            access_token: access_token,
-                                            upload_phase: 'finish',
-                                            upload_session_id: upload_log.sess,
-                                            message: options.message,
-                                            published: !options.delay,
-                                            scheduled_publish_time: Math.floor((options.delay || 0) / 1000)
-                                        },
-                                        function (resp) {
-                                            if (!resp.success) {
-                                                reject(resp);
-                                            } else {
-                                                console.log('Success, check image status ' + upload_log.sess);
-                                                resolve(upload_log.vid); // good , return video id
-                                            }
-                                        },
-                                        function (xhr) {
-                                            reject(xhr.responseJSON);
-                                        });
-                                }
-                            },
-                            function (xhr) {
-                                reject(xhr.responseJSON);
-                            })
-                    }
-
+                    var url = 'https://graph.facebook.com/v2.12/' + page_id + '/photos';
 
                     postModule.post_with_blob(
                         url,
                         {
                             access_token: access_token,
-                            upload_phase: 'start',
-                            file_size: file.size
+                            source: file,
+                            description: options.message,
+                            published: options.published,
+                            scheduled_publish_time: Math.floor((options.delay || 0) / 1000)
                         },
                         function (resp) {
-                            upload_log.sess = resp.upload_session_id;
-                            upload_log.vid = resp.video_id;
-                            upload_log.start = resp.start_offset;
-                            upload_log.end = resp.end_offset;
+                            console.log("uploaded");
+                            resolve(resp);
 
-
-                            do_send(url);
                         },
                         function (xhr) {
-                            reject(xhr.responseJSON);
+                            reject([xhr.responseJSON, "P"]);
                         }
-                    )
+                    );
                 });
             },
 
@@ -708,7 +728,8 @@
                             access_token: access_token,
                             message: options.message,
                             published: !options.delay,
-                            scheduled_publish_time: Math.floor((options.delay || 0) / 1000)
+                            scheduled_publish_time: Math.floor((options.delay || 0) / 1000),
+                            attached_media:options.attached_media
                         },
                         function (response) {
                             if (response && !response.error) {
@@ -716,7 +737,7 @@
                                 resolve();
                             }
                             else {
-                                reject(response.error);
+                                reject([response, "P"]);
                             }
                         }
                     );
@@ -747,13 +768,13 @@
             set_progress: function (current, max) {
                 if (current === undefined) {
                     // delete progress bar and hide
-                    this.panel.find('.progress-bar-cover').hide();
+                    postModule.panel.find('.progress-bar-cover').hide();
                 } else if (max === 0) {
-                    this.panel.find('.progress-bar-cover').show().find('.progress-bar').progressbar({
+                    postModule.panel.find('.progress-bar-cover').show().find('.progress-bar').progressbar({
                         value: false // infinite waiting
                     });
                 } else {
-                    this.panel.find('.progress-bar-cover').show().find('.progress-bar').progressbar({
+                    postModule.panel.find('.progress-bar-cover').show().find('.progress-bar').progressbar({
                         value: current,
                         max: max
                     });
@@ -762,18 +783,26 @@
 
 
             clear_all: function () {
-                this.package = {};
-                this.panel.find('textarea,input').val('').change();
+                postModule.package = {};
+                postModule.panel.find('textarea,input').val('').change();
             }
         };
 
 
-        function errorHandler(resp) {
-            if (resp.error.type === "AuthException") {
+        function errorHandler(resp_category) {
+            console.log("In error Handling!");
+            var category = resp_category[1];
+            var resp = resp_category[0];
+            if(category==="P" && (resp.error.message.toLowerCase().indexOf("expire")>0)){
+                tokenMachine.loadPageTokens();
+            }
+            else if(category==="A"){
                 tokenMachine.forceLogin();
             }
             else {
-                console.error(resp)
+                alert(JSON.stringify(resp));
+                renderMachine.show_pages(renderMachine.page_id);
+                postModule.clear_all();
             }
         }
 
@@ -783,7 +812,7 @@
                 status: true,
                 cookie: true,
                 xfbml: true,
-                version: 'v2.11'
+                version: 'v2.12'
             });
             FB.AppEvents.logPageView();
             tokenMachine.init();
@@ -791,18 +820,20 @@
 
             console.log("FBinitiated");
             tokenMachine.getToken(renderMachine.init.bind(renderMachine))
+            tokenMachine.pageTokenFreshing();
         });
     </script>
 </head>
 <body>
 <div class="overlay">
-    <div id="login_button">
-        <fb:login-button
-                scope="email, publish_actions, manage_pages,pages_manage_cta,publish_pages,pages_show_list,read_insights"
-                onlogin="tokenMachine.login()">
-        </fb:login-button>
-    </div>
+
+    <div class="fb-login-button" data-max-rows="1" data-size="large" data-button-type="continue_with" data-show-faces="false" data-auto-logout-link="false"
+     data-use-continue-as="false"
+     scope="email, publish_actions, manage_pages,pages_manage_cta,publish_pages,pages_show_list,read_insights" onlogin="tokenMachine.login()"></div>
 </div>
+
+
+
 
 <div id="container"></div>
 
@@ -810,6 +841,7 @@
 <template id="post_template">
     <div class="post">
         <div class="title"></div>
+        <div class="schedule"></div>
         <div class="insight"></div>
         <div class="msg"></div>
         <div class="pic"></div>
