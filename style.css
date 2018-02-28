@@ -28,24 +28,26 @@ html, body, #container {
 .post {
     width: 600px;
     margin: 10px auto;
-    background: #EEEEEE;
+    background: #FFFFFF;
+    border-radius:5px
 }
 
 .scheduled_post {
     width: 600px;
     margin: 10px auto;
-    background: #EEEEEE;
-    color: grey
+    background: #CCCCCC;
+    color: grey;
+    border-radius: 5px
 }
 
 .title {
-    background: #CCCCCC;
+    /*background: #CCCCCC;*/
     font-size: large;
-    padding: 0 5px ;
+    padding: 5px 5px 0px ;
 }
 
 .insight {
-    background: #EEEEEE;
+    /*background: #EEEEEE;*/
     color: #888888;
     font-size: small;
     text-align: right;
@@ -53,11 +55,11 @@ html, body, #container {
 }
 
 .pic {
-    background: #EEEEEE;
+    /*background: #EEEEEE;*/
 }
 
 .msg{
-    padding: 0 5px ;
+    padding: 0px 5px 5px;
     font-family: arial;
     font-size: 14px;
 }
